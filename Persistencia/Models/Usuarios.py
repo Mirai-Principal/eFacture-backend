@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Float, Text, Boolean, DateTime, Numeric, JSON
 from sqlalchemy.orm import relationship
-from Conexion.DataBase import Base
+from Persistencia.Conexion.DataBase import Base
 from sqlalchemy.sql import text
 
 from datetime import datetime, timedelta

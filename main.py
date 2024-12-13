@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from Models import Usuarios
+from Persistencia.Models import Usuarios
 from Router import UsuariosRouter
-from Conexion import DataBase
+from Persistencia.Conexion import DataBase
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
