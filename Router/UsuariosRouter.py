@@ -35,9 +35,8 @@ def password_reset(request: Request, data: UsuarioSchema.UsuarioRecoverPassword,
     return UsuariosLogica.password_reset(request, data, db)
 
 @router.post("/cambiar_password")
-def cambiar_password(data: UsuarioSchema.UsuarioUpdatePassword):
-    print(data.token)
-    return data 
+def cambiar_password(data: UsuarioSchema.UsuarioUpdatePassword, db: Session = Depends(DataBase.get_db)):
+    return UsuariosLogica.cambiar_password(data, db)
 
 
 

@@ -27,5 +27,10 @@ class Usuarios(Base):
     password = Column(String, nullable=False)
     tipo_usuario = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))
-    updated_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(ecuador_tz),  # Valor inicial
+        onupdate=lambda: datetime.now(ecuador_tz)  # Valor al actualizar
+    )
     deteled_at = Column(DateTime, nullable=True)

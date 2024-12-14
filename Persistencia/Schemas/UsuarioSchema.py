@@ -22,6 +22,7 @@ class UsuarioValidarToken(BaseModel):
 class UsuarioUpdatePassword(BaseModel):
     password: str
     confirm_password : str
+    correo: EmailStr = None
     token: str
 
 # class Usuarios(BaseModel):

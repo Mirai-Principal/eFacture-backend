@@ -1,8 +1,6 @@
-from fastapi import Depends
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from Persistencia.Conexion import DataBase
 
 from Logica import Auth
 from Persistencia.Models import Usuarios
@@ -30,3 +28,17 @@ class UsuariosCrud:
 
     def get_user_by_identificacion(self, identificacion: str, db: Session):
         return db.query(Usuarios.Usuarios).filter(Usuarios.Usuarios.identificacion == identificacion).first()
+
+    def update_password(self, datos : UsuarioSchema.UsuarioUpdatePassword, db: Session):
+        # Busca el usuario en la base de datos
+        usuario = self.get_user_by_email(datos.correo, db)
+
+        # if not usuario:
+        #     raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        usuario.password = datos.password
+
+        # Guarda los cambios en la base de datos
+        db.commit()
+        db.refresh(usuario)
+        return usuario

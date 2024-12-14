@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from .Crud import UsuariosCrud
+from Persistencia.Crud import UsuariosCrud
 
 class AccesoDatosFacade:
     """Fachada para la capa de persistencia. Centraliza las operaciones."""
@@ -17,3 +17,5 @@ class AccesoDatosFacade:
     def get_user_by_identificacion(self, correo: str, db : Session):
         return self.UsuariosCrud.get_user_by_email(correo, db)
     
+    def update_password(self, datos, db : Session):
+        return self.UsuariosCrud.update_password(datos, db)

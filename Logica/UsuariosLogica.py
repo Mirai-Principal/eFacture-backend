@@ -26,7 +26,6 @@ class UsuariosLogica:
         access_token = Auth.create_access_token(data={"sub": db_user.correo})
         return {"access_token": access_token, "token_type": "bearer"}
 
-
     def password_reset(self, request: Request, data, db: Session):
         """
         Reiniciar password
@@ -36,7 +35,7 @@ class UsuariosLogica:
 
         correo_existe = self.facade.get_user_by_email(data.correo, db)
         if correo_existe:
-            token = Auth.create_access_token(data={"sub": data.correo}, expires_delta = timedelta(minutes=5))
+            token = Auth.create_access_token(data={"sub": data.correo}, expires_delta = timedelta(minutes=10))
 
             # Obtención del dominio de forma dinámica 
             origin = request.headers.get("origin")
@@ -49,7 +48,7 @@ class UsuariosLogica:
                 Email.enviar_email(
                 destinatario=data.correo,
                 asunto="Recuperar contraseña",
-                mensaje="<!DOCTYPE html> <html lang='es'> <head> <meta charset='UTF-8'> <meta name='viewport' content='width=device-width, initial-scale=1.0'> <title>Recuperación de Contraseña</title> <style> body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); } .header { background-color: #4CAF50; color: white; padding: 10px 0; text-align: center; } .content { padding: 20px; text-align: center; } .button { background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; } .footer { text-align: center; padding: 20px; font-size: 12px; color: #777; } </style> </head> <body> <div class='container'> <div class='header'> <h1>Recuperación de Contraseña</h1> </div> <div class='content'> <p>Hola,</p> <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Si no realizaste esta solicitud, puedes ignorar este correo.</p> <p>Para restablecer tu contraseña, haz clic en el siguiente enlace:</p> <a href='" + reset_link + "' class='button'>Restablecer Contraseña</a> <p>Si tienes algún problema, por favor, contáctanos.</p> <p>Correo: soporte@efacture.com</p> </div> <div class='footer'> <p>© 2024 eFacure - SMARTWARE. Todos los derechos reservados.</p> </div> </div> </body></html>",
+                mensaje="<!DOCTYPE html> <html lang='es'> <head> <meta charset='UTF-8'> <meta name='viewport' content='width=device-width, initial-scale=1.0'> <title>Recuperación de Contraseña</title> <style> body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); } .header { background-color: #4CAF50; color: white; padding: 10px 0; text-align: center; } .content { padding: 20px; text-align: center; } .button { background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; } .footer { text-align: center; padding: 20px; font-size: 12px; color: #777; } </style> </head> <body> <div class='container'> <div class='header'> <h1>Recuperación de Contraseña</h1> </div> <div class='content'> <p>Hola,</p> <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Si no realizaste esta solicitud, puedes ignorar este correo.</p> <p>Para restablecer tu contraseña, haz clic en el siguiente enlace:</p> <a href='" + reset_link + "' class='button'>Restablecer Contraseña</a> <p>Link valido por 10 minutos</p> <p>Si tienes algún problema, por favor, contáctanos.</p> <p>Correo: soporte@efacture.com</p> </div> <div class='footer'> <p>© 2024 eFacure - SMARTWARE. Todos los derechos reservados.</p> </div> </div> </body></html>",
                 archivo_adjunto=None  # Cambia esto si quieres adjuntar un archivo
                 )
                 return 'Se te a enviado un correo a tu dirección para que puedas recuperar tu contraseña'
@@ -60,3 +59,11 @@ class UsuariosLogica:
         else:
             print("Correo no resgitrado")
             raise HTTPException(status_code=404 , detail="Correo no resgitrado")
+
+    def cambiar_password(self, datos, db: Session):
+        datos_token = Auth.verify_token(datos.token)
+        datos.correo = datos_token['sub']
+        datos.password = Auth.get_password_hash(datos.password)
+
+        return self.facade.update_password(datos, db)
+    
