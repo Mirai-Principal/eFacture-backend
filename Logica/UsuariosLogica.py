@@ -23,8 +23,8 @@ class UsuariosLogica:
         if db_user is None or not Auth.verify_password(user.password, db_user.password):
             raise HTTPException(status_code=401, detail="Credenciales incorrectas")
         
-        access_token = Auth.create_access_token(data={"sub": db_user.correo})
-        return {"access_token": access_token, "token_type": "bearer"}
+        access_token = Auth.create_access_token(data={"sub": db_user.correo, "tipo_usuario": db_user.tipo_usuario})
+        return {"access_token": access_token, "token_type": "bearer", "tipo_usuario": db_user.tipo_usuario}
 
     def password_reset(self, request: Request, data, db: Session):
         """
