@@ -24,8 +24,8 @@ def nueva_membresia(datos:MembresiaSchema.Membresia , db: Session = Depends(Data
 def actualizar_membresia(datos : MembresiaSchema.MembresiaUpdate, db : Session = Depends(DataBase.get_db)):
     return MembresiasLogica.actualizar_membresia(datos, db)
 
-@router.get('/visualizar_membresia', response_model = None)
-def visualizar_membresia(cod_membresia, db : Session = Depends(DataBase.get_db)):
+@router.get('/visualizar_membresia/{cod_membresia}', response_model = None)
+def visualizar_membresia(cod_membresia : str, db : Session = Depends(DataBase.get_db)):
     return MembresiasLogica.visualizar_membresia(cod_membresia, db)
 
 
