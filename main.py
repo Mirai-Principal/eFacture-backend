@@ -1,8 +1,9 @@
 from fastapi import FastAPI
-from Persistencia.Models import Usuarios
-from Router import UsuariosRouter
-from Persistencia.Conexion import DataBase
+# from Persistencia.Conexion import DataBase
 from fastapi.middleware.cors import CORSMiddleware
+
+# from Persistencia.Models import Usuarios
+from Router import UsuariosRouter, MembresiasRouter
 
 app = FastAPI()
 
@@ -21,6 +22,7 @@ app.add_middleware(
 
 
 # Iniciar la base de datos
-Usuarios.Base.metadata.create_all(bind=DataBase.engine)
+# Usuarios.Base.metadata.create_all(bind=DataBase.engine)
 
 app.include_router(UsuariosRouter.router)
+app.include_router(MembresiasRouter.router)

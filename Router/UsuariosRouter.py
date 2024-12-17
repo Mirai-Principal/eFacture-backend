@@ -46,4 +46,3 @@ def cambiar_password(data: UsuarioSchema.UsuarioUpdatePassword, db: Session = De
 
 
 
-
