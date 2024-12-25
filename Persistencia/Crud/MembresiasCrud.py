@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DataError, IntegrityError
 from fastapi import HTTPException
 
 from Persistencia.Models import Membresias
-from Persistencia.Schemas import MembresiaSchema
+from Schemas import MembresiaSchema
 
 
 class MembresiasCrud:
@@ -20,22 +20,13 @@ class MembresiasCrud:
             vigencia_meses = datos.vigencia_meses,
             fecha_finalizacion = datos.fecha_finalizacion
         )
-
-        try:
-            db.add(query)
-            db.commit()
-            db.refresh(query)
-        except DataError:
-            db.rollback()
-            raise HTTPException(status_code=400, detail=f"Error de datos: tipos o formato incorrecto")
-        except Exception:
-            db.rollback()
-            # raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error interno: datos con formato incorrecto")
-        return query
+        return self.get_exception(query, db)
 
     def get_membresia_by_id(self, cod : str, db : Session):
-        return db.query(Membresias.Membresias).filter(Membresias.Membresias.cod_membresia == cod).first()
+        resultado = db.query(Membresias.Membresias).filter(Membresias.Membresias.cod_membresia == cod).first()
+        if not resultado:
+            raise HTTPException(status_code=404, detail="Membresía no encontrada")
+        return resultado
     
     def actualizar_membresia(self, datos : MembresiaSchema.MembresiaUpdate, db : Session):
         resultado = self.get_membresia_by_id(datos.cod_membresia, db)
@@ -48,7 +39,21 @@ class MembresiasCrud:
         resultado.fecha_lanzamiento = datos.fecha_lanzamiento
         resultado.vigencia_meses = datos.vigencia_meses
         resultado.fecha_finalizacion = datos.fecha_finalizacion
-
-        db.commit()
-        db.refresh(resultado)
-        return resultado
+        return self.get_exception(resultado, db)
+    
+    def get_exception(self, consulta, db : Session):
+        try:
+            # Confirmar los cambios en la base de datos
+            db.add(consulta)  # Agregar el objeto actualizado al contexto de la sesión
+            db.commit()
+            db.refresh(consulta)
+        except IntegrityError as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=f"Ya existe una membresia con el mismo nombre") from e
+        except DataError as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=f"Error de datos: tipos o formato incorrecto") from e
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error interno: datos con formato incorrecto") from e
+        return consulta

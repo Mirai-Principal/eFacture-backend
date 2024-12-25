@@ -10,11 +10,15 @@ class Membresia(BaseModel):
     fecha_lanzamiento : datetime
     vigencia_meses : int
     fecha_finalizacion : datetime = None
-
-class MembresiaResponse(Membresia):
+    
+# lista_membresias
+class MembresiaResponse(BaseModel):
     cod_membresia: str
-    created_at: datetime
-    updated_at: datetime
+    nombre_membresia : str
+    precio : float
+    estado : str
+    fecha_lanzamiento : datetime
+    vigencia_meses : int
     class Config:
         from_attributes = True
         # orm_mode = True

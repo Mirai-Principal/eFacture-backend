@@ -5,7 +5,7 @@ from typing import List
 
 from Logica.MembresiasLogica import MembresiasLogica
 from Logica import Auth
-from Persistencia.Schemas import MembresiaSchema
+from Schemas import MembresiaSchema
 
 from Persistencia.Conexion import DataBase
 

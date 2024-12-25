@@ -2,6 +2,8 @@ from fastapi import FastAPI
 # from Persistencia.Conexion import DataBase
 from fastapi.middleware.cors import CORSMiddleware
 
+from Middlewares import JWTMiddleware
+
 # from Persistencia.Models import Usuarios
 from Router import UsuariosRouter, MembresiasRouter
 
@@ -15,14 +17,20 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Allows all origins from the list - acceso desde el frontend
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_credentials=True, # para uso de tokens y cookies / información de credenciales en los encabezados
+    allow_methods=["GET", "POST"],  # Allows methods que el frontend puede solicitar
+    allow_headers=["*"],  # Allows all headers que vienen desde el frontend
+    expose_headers=["Authorization", "sub", "tipo_usuario"],  # Permite que el frontend vea los encabezados
+    max_age=3600,  # Cachea la respuesta preflight por 1 hora
 )
 
 
 # Iniciar la base de datos
 # Usuarios.Base.metadata.create_all(bind=DataBase.engine)
 
+# Agregar el middleware a la aplicación
+app.add_middleware(JWTMiddleware.JWTMiddleware)
+
+# agregar los routers
 app.include_router(UsuariosRouter.router)
 app.include_router(MembresiasRouter.router)
