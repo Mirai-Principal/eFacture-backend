@@ -27,7 +27,8 @@ class Membresias(Base):
     )
     nombre_membresia = Column(String, nullable=False)
     descripcion_membresia = Column(String, nullable=False)
-    precio = Column(Float, nullable=False)
+    caracteristicas = Column(Text, nullable=False)
+    precio = Column(Numeric(5, 2), nullable=False)
     cant_comprobantes_carga = Column(Integer, nullable=False)
     estado = Column(
         String(20),

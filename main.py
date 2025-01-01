@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from Middlewares import JWTMiddleware
 
 # from Persistencia.Models import Usuarios
-from Router import UsuariosRouter, MembresiasRouter
+from Router import UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter
 
 app = FastAPI()
 
@@ -32,5 +32,6 @@ app.add_middleware(
 app.add_middleware(JWTMiddleware.JWTMiddleware)
 
 # agregar los routers
-app.include_router(UsuariosRouter.router)
-app.include_router(MembresiasRouter.router)
+app.include_router(UsuariosRouter.router, tags=["usuarios"])
+app.include_router(MembresiasRouter.router, tags=["membresias"])
+app.include_router(UsuarioMembresiaRouter.router, tags=["membresias"])

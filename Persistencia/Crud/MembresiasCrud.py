@@ -2,17 +2,21 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
 from fastapi import HTTPException
 
-from Persistencia.Models import Membresias
-from Schemas import MembresiaSchema
-
+from Persistencia.Models import (Membresias, UsuarioMembresia)
+from Schemas import (MembresiaSchema)
 
 class MembresiasCrud:
     def get_membresias(self, db : Session):
         return db.query(Membresias.Membresias).all()
+
+    def lista_memb_disponibles(self, db : Session):
+        return db.query(Membresias.Membresias).where(Membresias.Membresias.estado == "disponible").order_by(Membresias.Membresias.precio).all()
+
     def nueva_membresia(self, datos : MembresiaSchema.Membresia, db : Session):
         query = Membresias.Membresias(
             nombre_membresia = datos.nombre_membresia,
             descripcion_membresia = datos.descripcion_membresia,
+            caracterisicas = datos.caracterisicas,
             precio = datos.precio,
             cant_comprobantes_carga = datos.cant_comprobantes_carga,
             estado = datos.estado,
@@ -33,6 +37,7 @@ class MembresiasCrud:
 
         resultado.nombre_membresia = datos.nombre_membresia
         resultado.descripcion_membresia = datos.descripcion_membresia
+        resultado.caracterisicas = datos.caracterisicas
         resultado.precio = datos.precio
         resultado.cant_comprobantes_carga = datos.cant_comprobantes_carga
         resultado.estado = datos.estado
@@ -41,19 +46,37 @@ class MembresiasCrud:
         resultado.fecha_finalizacion = datos.fecha_finalizacion
         return self.get_exception(resultado, db)
     
+    def generar_suscripcion(self, datos : MembresiaSchema.PagoMembresia, db : Session):
+        consulta = UsuarioMembresia.UsuarioMembresia(
+            cod_usuario = datos.cod_usuario,
+            cod_membresia = datos.cod_membresia,
+            order_id_paypal = datos.orderID,
+            estado_membresia = datos.estado_membresia,
+        )
+        try:
+            # Confirmar los cambios en la base de datos
+            db.add(consulta)  # Agregar el objeto actualizado al contexto de la sesión
+            db.commit()
+            db.refresh(consulta)
+            return HTTPException(status_code=200, detail="Se han guardado los datos")
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error interno: No se han guardado los datos {str(e)}") from e
+
     def get_exception(self, consulta, db : Session):
         try:
             # Confirmar los cambios en la base de datos
             db.add(consulta)  # Agregar el objeto actualizado al contexto de la sesión
             db.commit()
             db.refresh(consulta)
+            return HTTPException(status_code=200, detail="Se han guardado los datos")
         except IntegrityError as e:
             db.rollback()
-            raise HTTPException(status_code=400, detail=f"Ya existe una membresia con el mismo nombre") from e
+            raise HTTPException(status_code=400, detail="Ya existe una membresia con el mismo nombre") from e
         except DataError as e:
             db.rollback()
-            raise HTTPException(status_code=400, detail=f"Error de datos: tipos o formato incorrecto") from e
+            raise HTTPException(status_code=400, detail="Error de datos: tipos o formato incorrecto") from e
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=f"Error interno: datos con formato incorrecto") from e
+            raise HTTPException(status_code=500, detail="Error interno: datos con formato incorrecto") from e
         return consulta

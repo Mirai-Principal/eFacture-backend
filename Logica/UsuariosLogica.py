@@ -43,7 +43,7 @@ class UsuariosLogica:
 
         correo_existe = self.facade.get_user_by_email(data.correo, db)
         if correo_existe:
-            token = OptionsToken.create_access_token({"sub": data.correo}, 10)
+            token = OptionsToken.create_access_token({"sub": data.correo, "tipo_usuario": correo_existe.tipo_usuario }, 10)
 
             #? Obtención del dominio de forma dinámica 
             origin = request.headers.get("origin")

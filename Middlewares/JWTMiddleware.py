@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from jose import JWTError, jwt, ExpiredSignatureError
 
 
@@ -45,7 +46,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         #? Permitir acceso a la ruta de login sin token
-        if request.url.path in ["/login", "/", "/password_reset"]:
+        if request.url.path in ["/login", "/", "/password_reset", "/registrar"]:
             return await call_next(request)
 
         token = request.headers.get("Authorization")
@@ -86,7 +87,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
             if request.url.path == "/cambiar_password":
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Link expirado, vuelva solicitar cambiar la contraseña") from e
             else:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="La sesión ha expirado") from e
+                return JSONResponse( status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "La sesión ha expirado"}, )
         except JWTError as e:
             # Manejo de error general de JWT
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="El token no es válido") from e
+            return JSONResponse( status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Token no válido o expirado"}, )

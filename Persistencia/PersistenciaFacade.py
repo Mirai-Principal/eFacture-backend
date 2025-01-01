@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-from Persistencia.Crud import UsuariosCrud
-from Persistencia.Crud import MembresiasCrud
+from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud)
 
 
 class AccesoDatosFacade:
@@ -9,6 +8,7 @@ class AccesoDatosFacade:
     def __init__(self):
         self.UsuariosCrud = UsuariosCrud.UsuariosCrud()  # Instancia de UsuariosCrud para este contexto
         self.MembresiasCrud = MembresiasCrud.MembresiasCrud()
+        self.UsuarioMembresiaCrud = UsuarioMembresiaCrud.UsuarioMembresiaCrud()
 
 
     # Métodos relacionados con usuarios
@@ -24,6 +24,8 @@ class AccesoDatosFacade:
 
     def lista_membresias(self, db : Session):
         return self.MembresiasCrud.get_membresias(db)
+    def lista_memb_disponibles(self, db : Session):
+        return self.MembresiasCrud.lista_memb_disponibles(db)
     def nueva_membresia(self, datos, db : Session):
         return self.MembresiasCrud.nueva_membresia(datos, db)
     def actualizar_membresia(self, datos, db : Session):
@@ -31,3 +33,9 @@ class AccesoDatosFacade:
     
     def visualizar_membresia(self, cod, db : Session):
         return self.MembresiasCrud.get_membresia_by_id(cod, db)
+
+    def generar_suscripcion(self, datos, db : Session):
+        return self.MembresiasCrud.generar_suscripcion(datos, db)
+
+    def visualizar_mi_suscripcion(self, db : Session):
+        return self.UsuarioMembresiaCrud.visualizar_mi_suscripcion(db)

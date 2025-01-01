@@ -39,4 +39,4 @@ def cambiar_password(data: UsuarioSchema.UsuarioUpdatePassword, db: Session = De
 
 @router.post("/validate_token")
 def validate_token(request : Request):
-    return request.headers.get("Authorization")
+    return {"message": "Token válido"}

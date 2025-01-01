@@ -17,3 +17,12 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 #ENTORNO
 ENTORNO = os.getenv("ENTORNO")
+
+# PAYPAL
+MODE = os.getenv("MODE")
+if MODE == "sandbox":
+    CLIENT_ID = os.getenv("CLIENT_ID_SANDBOX")
+    CLIENT_SECRET = os.getenv("CLIENT_SECRET_SANDBOX")
+else:
+    CLIENT_ID = os.getenv("CLIENT_ID")
+    CLIENT_SECRET = os.getenv("CLIENT_SECRET")
