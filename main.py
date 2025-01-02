@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from Middlewares import JWTMiddleware
 
 # from Persistencia.Models import Usuarios
-from Router import UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter
+from Router import (UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter, SueldoBasicoRouter, CategoriasRouter)
 
 app = FastAPI()
 
@@ -35,3 +35,5 @@ app.add_middleware(JWTMiddleware.JWTMiddleware)
 app.include_router(UsuariosRouter.router, tags=["usuarios"])
 app.include_router(MembresiasRouter.router, tags=["membresias"])
 app.include_router(UsuarioMembresiaRouter.router, tags=["membresias"])
+app.include_router(SueldoBasicoRouter.router, tags=["Suelo Basico"])
+app.include_router(CategoriasRouter.router, tags=["Categorias de comprobantes"])
