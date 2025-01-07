@@ -10,7 +10,7 @@ class Membresia(BaseModel):
     estado : str = Field(..., max_length=20)
     fecha_lanzamiento : datetime
     vigencia_meses : int
-    fecha_finalizacion : datetime = None
+    fecha_finalizacion : date = None
 
 class MembresiaResponse(Membresia):
     cod_membresia: str

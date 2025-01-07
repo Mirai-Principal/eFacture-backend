@@ -3,12 +3,16 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
+from dateutil.relativedelta import relativedelta
+
 from Logica import Auth, Email
 from Persistencia.Conexion import Config
 
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 from Middlewares.JWTMiddleware import OptionsToken
 
+from Schemas.MembresiaSchema import Membresia
 
 class MembresiasLogica:
     def __init__(self):
@@ -30,10 +34,12 @@ class MembresiasLogica:
             raise HTTPException(status_code=200, detail="No se encontraron membresías disponibles")
         return membresias
 
-    def nueva_membresia(self, datos, db : Session):
+    def nueva_membresia(self, datos : Membresia, db : Session):
+        datos.fecha_finalizacion = datos.fecha_lanzamiento + relativedelta(months=datos.vigencia_meses)    #calcula la fecha cuando dejara de estar disponible el plan
         return self.facade.nueva_membresia(datos, db)
 
     def actualizar_membresia(self, datos, db : Session):
+        datos.fecha_finalizacion = datos.fecha_lanzamiento + relativedelta(months=datos.vigencia_meses)    #calcula la fecha cuando dejara de estar disponible el plan
         return self.facade.actualizar_membresia(datos, db)
 
     def visualizar_membresia(self, cod, db : Session):

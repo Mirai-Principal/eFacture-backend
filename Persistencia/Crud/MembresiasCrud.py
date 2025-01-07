@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
 
 from Persistencia.Models import (Membresias, UsuarioMembresia)
 from Schemas import (MembresiaSchema)
@@ -16,7 +18,7 @@ class MembresiasCrud:
         query = Membresias.Membresias(
             nombre_membresia = datos.nombre_membresia,
             descripcion_membresia = datos.descripcion_membresia,
-            caracterisicas = datos.caracterisicas,
+            caracteristicas = datos.caracteristicas,
             precio = datos.precio,
             cant_comprobantes_carga = datos.cant_comprobantes_carga,
             estado = datos.estado,
@@ -37,7 +39,7 @@ class MembresiasCrud:
 
         resultado.nombre_membresia = datos.nombre_membresia
         resultado.descripcion_membresia = datos.descripcion_membresia
-        resultado.caracterisicas = datos.caracterisicas
+        resultado.caracteristicas = datos.caracteristicas
         resultado.precio = datos.precio
         resultado.cant_comprobantes_carga = datos.cant_comprobantes_carga
         resultado.estado = datos.estado
@@ -69,7 +71,10 @@ class MembresiasCrud:
             db.add(consulta)  # Agregar el objeto actualizado al contexto de la sesión
             db.commit()
             db.refresh(consulta)
-            return HTTPException(status_code=200, detail="Se han guardado los datos")
+            return JSONResponse(
+                status_code=200,
+                content={"message": "Se han guardado los datos"}
+            )
         except IntegrityError as e:
             db.rollback()
             raise HTTPException(status_code=400, detail="Ya existe una membresia con el mismo nombre") from e
