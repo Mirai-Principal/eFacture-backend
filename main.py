@@ -1,5 +1,7 @@
-from fastapi import FastAPI
-# from Persistencia.Conexion import DataBase
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 from fastapi.middleware.cors import CORSMiddleware
 
 from Middlewares import JWTMiddleware
@@ -30,6 +32,20 @@ app.add_middleware(
 
 # Agregar el middleware a la aplicación
 app.add_middleware(JWTMiddleware.JWTMiddleware)
+
+# Manejador de excepciones global
+# Personalizar la excepción RequestValidationError
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Los datos enviados no son válidos. Por favor, verifica el formato y vuelve a intentarlo.",
+            "errors": exc.errors(),
+            "body": exc.body if hasattr(exc, "body") else None
+        },
+    )
+
 
 # agregar los routers
 app.include_router(UsuariosRouter.router, tags=["usuarios"])
