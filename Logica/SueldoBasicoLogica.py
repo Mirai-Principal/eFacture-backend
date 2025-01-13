@@ -13,3 +13,5 @@ class SueldoBasicoLogica:
 
     def lista_sueldo_basico(self, db : Session):
         return self.facade.lista_sueldo_basico(db)
+    def sueldo_basico_update(self, datos, db : Session):
+        return self.facade.sueldo_basico_update(datos, db)

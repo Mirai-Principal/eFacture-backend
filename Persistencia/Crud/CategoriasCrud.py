@@ -34,6 +34,7 @@ class CategoriasCrud:
         resultado.categoria = datos.categoria
         resultado.descripcion_categoria = datos.descripcion_categoria
         resultado.cant_sueldos_basico = datos.cant_sueldos_basico
+        resultado.estado = datos.estado
         return self.get_exception(resultado, "Categoría de comprobante", db)
 
     def get_exception(self, consulta, tabla, db : Session):

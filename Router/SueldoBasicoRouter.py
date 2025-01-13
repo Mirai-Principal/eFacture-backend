@@ -8,11 +8,12 @@ from Schemas.SueldoBasicoSchema import SueldoBasicoCreate, SueldoBasicoLista
 from Persistencia.Conexion import DataBase
 
 router = APIRouter()
-
 SueldoBasicoLogica = SueldoBasicoLogica()
 
 @router.post('/sueldo_basico_insert')
 def sueldo_basico_insert( datos : SueldoBasicoCreate, db : Session = Depends(DataBase.get_db)):
+    if datos.cod_sueldo != 0:
+        return SueldoBasicoLogica.sueldo_basico_update(datos, db)
     return SueldoBasicoLogica.sueldo_basico_insert(datos, db)
 
 @router.get('/lista_sueldo_basico' , response_model=List[SueldoBasicoLista])

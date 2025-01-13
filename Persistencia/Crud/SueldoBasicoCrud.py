@@ -23,6 +23,18 @@ class SueldoBasicoCrud:
         )
         return self.get_exception(query, "Sueldo Básico", db)
 
+    def sueldo_basico_update(self, datos : SueldoBasicoSchema.SueldoBasicoCreate, db : Session):
+        resultado = db.query(SueldoBasico).where(SueldoBasico.cod_sueldo == datos.cod_sueldo).first()
+        if not resultado:
+            return JSONResponse(
+                status_code=200,
+                content={"message": "No se encontró la categoría"}
+            )
+        resultado.valor_sueldo = datos.valor_sueldo
+        resultado.periodo_fiscal = datos.periodo_fiscal
+        resultado.estado = datos.estado
+        return self.get_exception(resultado, "Sueldo basico", db)
+
     def get_exception(self, consulta, tabla, db : Session):
         try:
             # Confirmar los cambios en la base de datos

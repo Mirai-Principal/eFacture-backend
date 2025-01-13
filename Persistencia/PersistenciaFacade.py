@@ -48,6 +48,8 @@ class AccesoDatosFacade:
         return self.SueldoBasicoCrud.sueldo_basico_insert(datos, db)
     def lista_sueldo_basico(self, db : Session):
         return self.SueldoBasicoCrud.lista_sueldo_basico(db)
+    def sueldo_basico_update(self, datos, db : Session):
+        return self.SueldoBasicoCrud.sueldo_basico_update(datos, db)
 
     # categorias
     def categoria_insert(self, datos, db : Session):
