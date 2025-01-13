@@ -5,7 +5,7 @@ Base = declarative_base()
 
 class Deducciones(Base):
     __tablename__ = 'efacture_repo.deducciones'
-    cod_deduccion = Column(String, primary_key=True, nullable=False)
+    cod_deduccion = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     prediodo_fiscal = Column(String, nullable=False)
     valor_deducido = Column(String, nullable=False)
     archivo_deduccion = Column(Text, nullable=False)

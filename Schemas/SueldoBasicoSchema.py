@@ -10,5 +10,5 @@ class SueldoBasicoCreate(BaseModel):
     # class Config:
     #     orm_mode = True
 class SueldoBasicoLista(SueldoBasicoCreate):
-    cod_sueldo : str
+    cod_sueldo : int
     created_at: datetime

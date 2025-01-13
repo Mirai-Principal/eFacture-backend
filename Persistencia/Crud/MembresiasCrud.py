@@ -83,5 +83,5 @@ class MembresiasCrud:
             raise HTTPException(status_code=400, detail="Error de datos: tipos o formato incorrecto") from e
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail="Error interno: datos con formato incorrecto") from e
+            raise HTTPException(status_code=500, detail=f"Error interno: datos con formato incorrecto {e}") from e
         return consulta

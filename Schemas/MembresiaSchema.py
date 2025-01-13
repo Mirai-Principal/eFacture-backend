@@ -13,7 +13,7 @@ class Membresia(BaseModel):
     fecha_finalizacion : date = None
 
 class MembresiaResponse(Membresia):
-    cod_membresia: str
+    cod_membresia: int
     created_at: datetime
     updated_at: datetime
     class Config:
@@ -21,18 +21,18 @@ class MembresiaResponse(Membresia):
         # orm_mode = True
 
 class lista_memb_disponibles(Membresia):
-    cod_membresia: str
+    cod_membresia: int
 
 
 class MembresiaUpdate(Membresia):
-    cod_membresia : str
+    cod_membresia : int
 
 class MembresiaVisualizar:
-    cod_membresia: str
+    cod_membresia: int
 
 class PagoMembresia(BaseModel):
-    cod_usuario : str = None
-    cod_membresia : str
+    cod_usuario : int = None
+    cod_membresia : int
     precio : float
     orderID : str
     estado_membresia : str = None

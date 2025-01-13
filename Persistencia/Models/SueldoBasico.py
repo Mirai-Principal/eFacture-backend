@@ -12,9 +12,9 @@ class SueldoBasico(Base):
     __tablename__ = 'sueldo_basico'
     __table_args__ = (
         CheckConstraint("valor_sueldo >= 1", name="ckc_valor_sueldo_sueldo_b"),
-        {"schema": "efacture_repo"}  # Especifica el esquema como diccionario
+        {"schema": "efacture_repo"}   # Este esquema se usará en PostgreSQL; en MySQL se ignorará.
     )
-    cod_sueldo = Column(String, primary_key=True, nullable=False, default=text("'sbu_' || nextval('efacture_repo.sq_sueldo_basico')"))
+    cod_sueldo = Column(Integer, primary_key=True, nullable=False, autoincrement=True) 
     valor_sueldo = Column(Numeric(7, 2), nullable=False)
     periodo_fiscal = Column(Date, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, SueldoBasicoCrud , CategoriasCrud)
+from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, SueldoBasicoCrud , CategoriasCrud, ComprobantesCrud)
 
 
 class AccesoDatosFacade:
@@ -11,6 +11,7 @@ class AccesoDatosFacade:
         self.UsuarioMembresiaCrud = UsuarioMembresiaCrud.UsuarioMembresiaCrud()
         self.SueldoBasicoCrud = SueldoBasicoCrud.SueldoBasicoCrud()
         self.CategoriasCrud = CategoriasCrud.CategoriasCrud()
+        self.ComprobantesCrud = ComprobantesCrud.ComprobantesCrud()
 
 
 # Métodos relacionados con usuarios
@@ -55,3 +56,28 @@ class AccesoDatosFacade:
         return self.CategoriasCrud.categorias_lista(db)
     def categoria_update(self, datos, db : Session):
         return self.CategoriasCrud.categoria_update(datos, db)
+
+    # comprador
+    def comprador_insert(self, datos, db : Session):
+        return self.ComprobantesCrud.comprador_insert(datos, db)
+    def comprador_find_one(self, identificacion_comprador, db : Session):
+        return self.ComprobantesCrud.comprador_find_one(identificacion_comprador, db)
+    def lista_compradores(self, db : Session):
+        return self.ComprobantesCrud.lista_compradores(db)
+
+    # comprobantes
+    def comprobante_find_one(self, clave_acceso, db : Session):
+        return self.ComprobantesCrud.comprobante_find_one(clave_acceso, db)
+
+    def comprobante_insert(self, datos, db : Session):
+        return self.ComprobantesCrud.comprobante_insert(datos, db)
+    def lista_comprobantes(self, datos, db : Session):
+        return self.ComprobantesCrud.lista_comprobantes(datos, db)
+
+    # detalles comprobante
+    def detalle_insert(self, datos, db : Session):
+        return self.ComprobantesCrud.detalle_insert(datos, db)
+    def detalles_comprobante(self, cod_comprobante, db : Session):
+        return self.ComprobantesCrud.detalles_comprobante(cod_comprobante, db)
+    def detalles_update(self, datos, db : Session):
+        repr = self.ComprobantesCrud.detalles_update(datos, db)

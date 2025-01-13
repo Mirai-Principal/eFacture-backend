@@ -12,7 +12,7 @@ CategoriasLogica = CategoriasLogica()
 
 @router.post('/categorias_insert')
 def categorias_insert( datos : CategoriaCreate, db : Session = Depends(DataBase.get_db)):
-    if datos.cod_categoria:
+    if datos.cod_categoria - 0:
         return CategoriasLogica.categoria_update(datos, db)
     return CategoriasLogica.categoria_insert(datos, db)
 

@@ -25,7 +25,7 @@ class UsuarioUpdatePassword(BaseModel):
     correo: EmailStr = None
 
 # class Usuarios(BaseModel):
-#     cod_usuario: str
+#     cod_usuario: int
 
 #     class Config:
 #         from_attributes = True

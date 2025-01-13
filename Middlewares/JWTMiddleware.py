@@ -46,7 +46,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         #? Permitir acceso a la ruta de login sin token
-        if request.url.path in ["/login", "/", "/password_reset", "/registrar", "/portal_sri"]:
+        if request.url.path in ["/login", "/", "/password_reset", "/registrar"]:
             return await call_next(request)
 
         token = request.headers.get("Authorization")

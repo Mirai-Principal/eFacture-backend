@@ -1,35 +1,44 @@
-from fastapi import APIRouter, Depends, Response, Request, HTTPException
-import requests 
-
+from fastapi import APIRouter, Depends
 from typing import List
 from sqlalchemy.orm import Session
 
+from Logica.ComprobantesLogica import ComprobantesLogica
+
+from Schemas.ComprobantesSchema import ParametrosExtraccion
+from Schemas.ComprobantesSchema import CompradorResponse
+from Schemas.ComprobantesSchema import CombantesResponse
+from Schemas.ComprobantesSchema import ComprobantesLista
+from Schemas.ComprobantesSchema import DetallesResponse
+from Schemas.ComprobantesSchema import DetallesUpdate
+
+
 from Persistencia.Conexion import DataBase
 
-from bs4 import BeautifulSoup
-
 router = APIRouter()
+ComprobantesLogica = ComprobantesLogica()
+# comprobantes
+@router.post('/extraer_comprobantes')
+def extraer_comprobantes(datos : ParametrosExtraccion):
+    return ComprobantesLogica.extraer_comprobantes(datos)
 
-@router.get("/portal_sri")
-def proxy(request: Request):
-    # URL del SRI que deseas scrapeear
-    url = "https://srienlinea.sri.gob.ec/auth/realms/Internet/protocol/openid-connect/auth?client_id=app-sri-claves-angular&redirect_uri=https%3A%2F%2Fsrienlinea.sri.gob.ec%2Fsri-en-linea%2F%2Fcontribuyente%2Fperfil&state=b709b8bc-9006-4265-ace1-be8664cd6ecc&nonce=d22fb123-149c-4a22-8a79-e063a4fb18ce&response_mode=fragment&response_type=code&scope=openid"
+@router.post('/cargar_comprobantes')
+def cargar_comprobantes( db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.cargar_comprobantes(db)
 
-    # Encabezados para simular un navegador real
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-    }
+@router.post('/lista_comprobantes', response_model=List[CombantesResponse])
+def lista_comprobantes( datos : ComprobantesLista, db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.lista_comprobantes(datos, db)
 
-    try:
-        # Hacer la solicitud HTTP
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Verifica si hubo un error en la solicitud
+# compradores
+@router.post('/lista_compradores', response_model=List[CompradorResponse])
+def lista_compradores( db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.lista_compradores(db)
 
-        # Parsear el contenido HTML
-        soup = BeautifulSoup(response.content, "html.parser")
+# detalles
+@router.get('/detalles_comprobante/{cod_comprobante}', response_model=List[DetallesResponse])
+def detalles_comprobante( cod_comprobante : int, db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.detalles_comprobante(cod_comprobante, db)
 
-        # Extraer datos específicos
-        # print(soup.prettify())  # Muestra el contenido HTML formateado
-        return response.content
-    except requests.exceptions.RequestException as e:
-        print(f"Error al hacer scraping: {e}")
+@router.post('/detalles_update')
+def detalles_update( datos : DetallesUpdate, db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.detalles_update(datos, db)

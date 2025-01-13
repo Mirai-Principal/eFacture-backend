@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Float, Text, Boolean, DateTime, Numeric, JSON, CheckConstraint
 from datetime import datetime
-from sqlalchemy.sql import text
 
 from Persistencia.Conexion.DataBase import Base
 
@@ -20,10 +19,10 @@ class Membresias(Base):
     )
     
     cod_membresia = Column(
-        String,
+        Integer,
         primary_key=True,
         nullable=False,
-        default=text("'mem_' || nextval('efacture_repo.sq_membresias')")
+        autoincrement=True
     )
     nombre_membresia = Column(String, nullable=False)
     descripcion_membresia = Column(String, nullable=False)

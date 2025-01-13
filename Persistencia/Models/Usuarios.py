@@ -15,10 +15,10 @@ class Usuarios(Base):
     __tablename__ = 'usuarios'
     __table_args__ = {"schema": "efacture_repo"}  # Especifica el esquema aquí
     cod_usuario = Column(
-        String,
+        Integer,
         primary_key=True,
         nullable=False,
-        default=text("'usu_' || nextval('efacture_repo.sq_usuarios')")
+        autoincrement=True,
     )
     identificacion = Column(String, nullable=False)
     nombres = Column(String, nullable=False)

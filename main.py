@@ -34,7 +34,7 @@ app.add_middleware(
 app.add_middleware(JWTMiddleware.JWTMiddleware)
 
 # Manejador de excepciones global
-# Personalizar la excepción RequestValidationError
+# Personalizar la excepción RequestValidationError cuando no cumple con el esquema de datos
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
