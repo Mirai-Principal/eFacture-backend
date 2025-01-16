@@ -11,7 +11,6 @@ class Categorias(Base):
     __tablename__ = 'categorias'
     __table_args__ = (
         CheckConstraint('cant_fraccion_basica >= 0', name="ckc_cant_fraccion_bas_categori"),
-        CheckConstraint("estado IN ('no disponible', 'disponible')", name="ckc_estado_categori"),
         {"schema": "efacture_repo"}  # Especifica el esquema como diccionario
     )
 
@@ -19,11 +18,7 @@ class Categorias(Base):
     categoria = Column(String(50), nullable=False)
     descripcion_categoria = Column(Text, nullable=True)
     cant_fraccion_basica = Column(Numeric(6, 3), nullable=False)
-    estado = Column(
-        String(20),
-        nullable=False,
-        default="disponible"  # Valor por defecto
-    )
+
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))
     updated_at = Column(
         DateTime,

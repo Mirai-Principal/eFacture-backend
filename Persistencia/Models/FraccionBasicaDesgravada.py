@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint
+from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint, ForeignKey
 from Persistencia.Conexion.DataBase import Base
 
 import pytz
@@ -8,22 +8,16 @@ import pytz
 ecuador_tz = pytz.timezone('America/Guayaquil')
 
 class FraccionBasicaDesgravada(Base):
-    __tablename__ = 'categorias'
+    __tablename__ = 'fraccion_basica_desgravada'
     __table_args__ = (
-        CheckConstraint('cant_fraccion_basica >= 0', name="ckc_cant_fraccion_bas_categori"),
-        CheckConstraint("estado IN ('no disponible', 'disponible')", name="ckc_estado_categori"),
+        CheckConstraint('valor_fraccion_basica >= 0', name="ckc_valor_fraccion_ba_fraccion"),
         {"schema": "efacture_repo"}  # Especifica el esquema como diccionario
     )
 
     cod_fraccion_basica = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
-    categoria = Column(String(50), nullable=False)
-    descripcion_categoria = Column(Text, nullable=True)
-    cant_fraccion_basica = Column(Numeric(6, 3), nullable=False)
-    estado = Column(
-        String(20),
-        nullable=False,
-        default="disponible"  # Valor por defecto
-    )
+    cod_periodo_fiscal = Column(Integer, ForeignKey("efacture_repo.periodo_fiscal.cod_periodo_fiscal"), nullable=False, unique=True)
+    valor_fraccion_basica = Column(Numeric(10, 2), nullable=False)
+    
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))
     updated_at = Column(
         DateTime,

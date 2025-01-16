@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
-from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud)
+from Persistencia.Crud import (
+    UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud, FraccionBasicaCrud
+    )
 
 
 class AccesoDatosFacade:
@@ -12,6 +14,7 @@ class AccesoDatosFacade:
         self.PeriodoFiscalCrud = PeriodoFiscalCrud.PeriodoFiscalCrud()
         self.CategoriasCrud = CategoriasCrud.CategoriasCrud()
         self.ComprobantesCrud = ComprobantesCrud.ComprobantesCrud()
+        self.FraccionBasicaCrud = FraccionBasicaCrud.FraccionBasicaCrud()
 
 
 # Métodos relacionados con usuarios
@@ -50,6 +53,14 @@ class AccesoDatosFacade:
         return self.PeriodoFiscalCrud.periodo_fiscal_lista(db)
     def periodo_fiscal_delete(self, datos, db : Session):
         return self.PeriodoFiscalCrud.periodo_fiscal_delete(datos, db)
+
+# feccion basica desgravada
+    def fraccion_basica_insert(self, datos, db : Session):
+        return self.FraccionBasicaCrud.fraccion_basica_insert(datos, db)
+    def fraccion_basica_list(self, db):
+        return self.FraccionBasicaCrud.fraccion_basica_list(db)
+    def fraccion_basica_delete(self, datos, db : Session):
+        return self.FraccionBasicaCrud.fraccion_basica_delete(datos, db)
 
     # categorias
     def categoria_insert(self, datos, db : Session):

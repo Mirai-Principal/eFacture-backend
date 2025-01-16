@@ -8,7 +8,7 @@ from Schemas.PeriodoFiscalSchema import (PeriodoFiscalCreate, PeriodoFiscalDetel
 
 class PeriodoFiscalCrud:
     def periodo_fiscal_lista(self, db : Session):
-        resultado = db.query(PeriodoFiscal).all()
+        resultado = db.query(PeriodoFiscal).order_by(PeriodoFiscal.periodo_fiscal.desc()).all()
         if not resultado:
             return JSONResponse(
                 status_code=200,

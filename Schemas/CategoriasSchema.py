@@ -6,7 +6,6 @@ class CategoriaCreate(BaseModel):
     categoria : str = Field(..., max_length=50)
     descripcion_categoria : str
     cant_fraccion_basica : float
-    estado : str
 
 class CategoriaLista(CategoriaCreate):
     created_at : datetime
