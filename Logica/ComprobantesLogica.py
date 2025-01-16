@@ -49,7 +49,7 @@ class ComprobantesLogica:
         # Configuración del driver en modo headless
         #? habilitar lo q de aqui cuando entre a produccion
         # chrome_options.add_argument("--headless")  # Ejecutar en modo headless
-        # chrome_options.add_argument("--disable-gpu")  # Deshabilitar GPU (opcional)
+        chrome_options.add_argument("--disable-gpu")  # Deshabilitar GPU (opcional)
         # chrome_options.add_argument("--no-sandbox")  # Recomendado para entornos de servidor
         # chrome_options.add_argument("--disable-dev-shm-usage")  # Optimización para contenedores
 
@@ -85,6 +85,7 @@ class ComprobantesLogica:
             print("login ok")
 
             # Paso 3: Navegar a la sección de Facturación Electrónica
+            time.sleep(1)
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.eliminar-boton'))).click()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//span[contains(text(), "FACTURACIÓN ELECTRÓNICA")]'))).click()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//span[contains(text(), "Comprobantes electrónicos recibidos")]'))).click()

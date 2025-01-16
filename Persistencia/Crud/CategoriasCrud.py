@@ -11,7 +11,7 @@ class CategoriasCrud:
         query = Categorias(
             categoria = datos.categoria,
             descripcion_categoria = datos.descripcion_categoria,
-            cant_sueldos_basico = datos.cant_sueldos_basico,
+            fraccion_basica_desgravada = datos.fraccion_basica_desgravada,
         )
         return self.get_exception(query, "Categoría de comprobante", db)
 
@@ -33,7 +33,7 @@ class CategoriasCrud:
             )
         resultado.categoria = datos.categoria
         resultado.descripcion_categoria = datos.descripcion_categoria
-        resultado.cant_sueldos_basico = datos.cant_sueldos_basico
+        resultado.fraccion_basica_desgravada = datos.fraccion_basica_desgravada
         resultado.estado = datos.estado
         return self.get_exception(resultado, "Categoría de comprobante", db)
 

@@ -5,7 +5,7 @@ class CategoriaCreate(BaseModel):
     cod_categoria : int = None
     categoria : str = Field(..., max_length=50)
     descripcion_categoria : str
-    cant_sueldos_basico : int 
+    cant_fraccion_basica : float
     estado : str
 
 class CategoriaLista(CategoriaCreate):

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, SueldoBasicoCrud , CategoriasCrud, ComprobantesCrud)
+from Persistencia.Crud import (UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud)
 
 
 class AccesoDatosFacade:
@@ -9,7 +9,7 @@ class AccesoDatosFacade:
         self.UsuariosCrud = UsuariosCrud.UsuariosCrud()  # Instancia de UsuariosCrud para este contexto
         self.MembresiasCrud = MembresiasCrud.MembresiasCrud()
         self.UsuarioMembresiaCrud = UsuarioMembresiaCrud.UsuarioMembresiaCrud()
-        self.SueldoBasicoCrud = SueldoBasicoCrud.SueldoBasicoCrud()
+        self.PeriodoFiscalCrud = PeriodoFiscalCrud.PeriodoFiscalCrud()
         self.CategoriasCrud = CategoriasCrud.CategoriasCrud()
         self.ComprobantesCrud = ComprobantesCrud.ComprobantesCrud()
 
@@ -43,13 +43,13 @@ class AccesoDatosFacade:
     def visualizar_mi_suscripcion(self, db : Session):
         return self.UsuarioMembresiaCrud.visualizar_mi_suscripcion(db)
 
-# sueldo basico
-    def sueldo_basico_insert(self, datos, db : Session):
-        return self.SueldoBasicoCrud.sueldo_basico_insert(datos, db)
-    def lista_sueldo_basico(self, db : Session):
-        return self.SueldoBasicoCrud.lista_sueldo_basico(db)
-    def sueldo_basico_update(self, datos, db : Session):
-        return self.SueldoBasicoCrud.sueldo_basico_update(datos, db)
+# periodo fiscal
+    def periodo_fiscal_insert(self, datos, db : Session):
+        return self.PeriodoFiscalCrud.periodo_fiscal_insert(datos, db)
+    def periodo_fiscal_lista(self, db : Session):
+        return self.PeriodoFiscalCrud.periodo_fiscal_lista(db)
+    def periodo_fiscal_delete(self, datos, db : Session):
+        return self.PeriodoFiscalCrud.periodo_fiscal_delete(datos, db)
 
     # categorias
     def categoria_insert(self, datos, db : Session):
