@@ -42,6 +42,7 @@ class ComprobantesCrud:
             archivo = datos.archivo,
             clave_acceso = datos.clave_acceso,
             razon_social = datos.razon_social,
+            ruc = datos.ruc,
             fecha_emision = datos.fecha_emision,
             importe_total = datos.importe_total
         )

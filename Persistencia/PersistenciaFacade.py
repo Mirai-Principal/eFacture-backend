@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from Persistencia.Crud import (
-    UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud, FraccionBasicaCrud
+    UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, 
+    PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud, 
+    FraccionBasicaCrud, GenerarAgpCrud
     )
 
 
@@ -15,6 +17,7 @@ class AccesoDatosFacade:
         self.CategoriasCrud = CategoriasCrud.CategoriasCrud()
         self.ComprobantesCrud = ComprobantesCrud.ComprobantesCrud()
         self.FraccionBasicaCrud = FraccionBasicaCrud.FraccionBasicaCrud()
+        self.GenerarAgpCrud = GenerarAgpCrud.GenerarAgpCrud()
 
 
 # Métodos relacionados con usuarios
@@ -53,6 +56,8 @@ class AccesoDatosFacade:
         return self.PeriodoFiscalCrud.periodo_fiscal_lista(db)
     def periodo_fiscal_delete(self, datos, db : Session):
         return self.PeriodoFiscalCrud.periodo_fiscal_delete(datos, db)
+    def periodo_fiscal_find_one(self, cod_periodo_fiscal, db : Session):
+        return self.PeriodoFiscalCrud.periodo_fiscal_find_one(cod_periodo_fiscal, db)
 
 # feccion basica desgravada
     def fraccion_basica_insert(self, datos, db : Session):
@@ -93,4 +98,8 @@ class AccesoDatosFacade:
     def detalles_comprobante(self, cod_comprobante, db : Session):
         return self.ComprobantesCrud.detalles_comprobante(cod_comprobante, db)
     def detalles_update(self, datos, db : Session):
-        repr = self.ComprobantesCrud.detalles_update(datos, db)
+        return self.ComprobantesCrud.detalles_update(datos, db)
+
+    #AGP
+    def agp_datos_lista(self, datos, db :Session):
+        return self.GenerarAgpCrud.agp_datos_lista(datos, db)

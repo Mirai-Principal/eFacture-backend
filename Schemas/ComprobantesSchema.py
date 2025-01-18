@@ -22,17 +22,13 @@ class ComprobantesCreate(BaseModel):
     cod_comprador : int
     archivo : str
     clave_acceso : str
+    ruc : str = Field(..., max_length=13)
     razon_social : str = Field(..., max_length=100)
-    fecha_emision : datetime
+    fecha_emision : date
     importe_total : float
 
 class CombantesResponse(ComprobantesCreate):
     cod_comprobante : int
-    cod_comprador : int
-    clave_acceso : str
-    razon_social : str = Field(..., max_length=100)
-    fecha_emision : date
-    importe_total : float
 
 class ComprobantesLista(BaseModel):
     cod_comprador : int = None

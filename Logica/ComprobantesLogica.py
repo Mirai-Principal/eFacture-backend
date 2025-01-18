@@ -60,6 +60,11 @@ class ComprobantesLogica:
         return driver
 
     def extraer_comprobantes(self, datos : ParametrosExtraccion):
+        # estas lineas de aqui es para probar la carga, se puede borrar si quiere 
+        # return JSONResponse(
+        #         status_code=200,
+        #         content={"message": 'Se finalizo la descarga de comprobantes'}
+        #     )
         # Paso 1: inicializa el navegador 
         driver = self.RunProfile()
         # Abre la URL deseada
@@ -86,7 +91,7 @@ class ComprobantesLogica:
 
             # Paso 3: Navegar a la sección de Facturación Electrónica
             time.sleep(1)
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.eliminar-boton'))).click()
+            WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.eliminar-boton'))).click()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//span[contains(text(), "FACTURACIÓN ELECTRÓNICA")]'))).click()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//span[contains(text(), "Comprobantes electrónicos recibidos")]'))).click()
             print("entramos al panel de comprobantes")
@@ -241,6 +246,7 @@ class ComprobantesLogica:
                     infoTributaria = root.find('infoTributaria')
                     claveAcceso = infoTributaria.find('claveAcceso').text
                     razonSocial = infoTributaria.find('razonSocial').text
+                    ruc = infoTributaria.find('ruc').text
 
                     infoFactura = root.find('infoFactura')
                     fechaEmision = infoFactura.find("fechaEmision").text
@@ -284,6 +290,7 @@ class ComprobantesLogica:
                                 cod_comprador = self.cod_comprador,
                                 archivo = xml_string,
                                 clave_acceso = claveAcceso,
+                                ruc = ruc,
                                 razon_social = razonSocial,
                                 fecha_emision = datetime.strptime(fechaEmision, "%d/%m/%Y"),
                                 importe_total = importeTotal

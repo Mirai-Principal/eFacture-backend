@@ -8,7 +8,9 @@ from Middlewares import JWTMiddleware
 
 # from Persistencia.Models import Usuarios
 from Router import (
-    UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter, CategoriasRouter, ComprobantesRouter, PeriodoFiscalRouter, FraccionBasicaRouter
+    UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter, 
+    CategoriasRouter, ComprobantesRouter, PeriodoFiscalRouter, 
+    FraccionBasicaRouter, AgpRouter
     )
 
 app = FastAPI()
@@ -24,7 +26,7 @@ app.add_middleware(
     allow_credentials=True, # para uso de tokens y cookies / información de credenciales en los encabezados
     allow_methods=["GET", "POST"],  # Allows methods que el frontend puede solicitar
     allow_headers=["*"],  # Allows all headers que vienen desde el frontend
-    expose_headers=["Authorization", "sub", "tipo_usuario"],  # Permite que el frontend vea los encabezados
+    expose_headers=["Authorization", "sub", "tipo_usuario", "filename"],  # Permite que el frontend vea los encabezados
     max_age=3600,  # Cachea la respuesta preflight por 1 hora
 )
 
@@ -57,4 +59,5 @@ app.include_router(CategoriasRouter.router, tags=["Categorias de comprobantes"])
 app.include_router(ComprobantesRouter.router, tags=["Comprobantes"])
 app.include_router(PeriodoFiscalRouter.router, tags=["Periodo Fiscal"])
 app.include_router(FraccionBasicaRouter.router, tags=["Fraccion Basica"])
+app.include_router(AgpRouter.router, tags=["Anexo de gatos personales"])
 

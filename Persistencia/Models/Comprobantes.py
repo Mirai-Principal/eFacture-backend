@@ -22,6 +22,7 @@ class Comprobantes(Base):
     archivo = Column(Text, nullable=False)
     clave_acceso = Column(Text, nullable=False, unique=True)
     razon_social = Column(String(100), nullable=False)
+    ruc = Column(String(13), nullable=False)
     fecha_emision = Column(Date, nullable=False)
     importe_total = Column(Numeric(10,2), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))

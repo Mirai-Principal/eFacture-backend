@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint
+from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint, ForeignKey
 from Persistencia.Conexion.DataBase import Base
 
 import pytz
@@ -15,6 +15,7 @@ class Categorias(Base):
     )
 
     cod_categoria = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    cod_fraccion_basica = Column(Integer, ForeignKey("efacture_repo.fraccion_basica_desgravada.cod_fraccion_basica"), nullable=False)
     categoria = Column(String(50), nullable=False)
     descripcion_categoria = Column(Text, nullable=True)
     cant_fraccion_basica = Column(Numeric(6, 3), nullable=False)
