@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -22,8 +23,8 @@ def extraer_comprobantes(datos : ParametrosExtraccion):
     return ComprobantesLogica.extraer_comprobantes(datos)
 
 @router.post('/cargar_comprobantes')
-def cargar_comprobantes( db : Session = Depends(DataBase.get_db)):
-    return ComprobantesLogica.cargar_comprobantes(db)
+def cargar_comprobantes(request: Request, db : Session = Depends(DataBase.get_db)):
+    return ComprobantesLogica.cargar_comprobantes(request, db)
 
 @router.post('/lista_comprobantes', response_model=List[CombantesResponse])
 def lista_comprobantes( datos : ComprobantesLista, db : Session = Depends(DataBase.get_db)):

@@ -36,3 +36,4 @@ class PagoMembresia(BaseModel):
     precio : float
     orderID : str
     estado_membresia : str = None
+    cant_comprobantes_permitidos : int = None

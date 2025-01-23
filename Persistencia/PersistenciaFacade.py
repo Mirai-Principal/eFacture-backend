@@ -48,6 +48,8 @@ class AccesoDatosFacade:
         return self.MembresiasCrud.generar_suscripcion(datos, db)
     def visualizar_mi_suscripcion(self, db : Session):
         return self.UsuarioMembresiaCrud.visualizar_mi_suscripcion(db)
+    def descontar_cant_comprobantes(self, cod_usuario, db : Session):
+        return self.UsuarioMembresiaCrud.descontar_cant_comprobantes(cod_usuario, db)
 
 # periodo fiscal
     def periodo_fiscal_insert(self, datos, db : Session):

@@ -1,6 +1,8 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy import and_
+
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
@@ -12,7 +14,11 @@ import pytz
 ecuador_tz = pytz.timezone('America/Guayaquil')
 
 
-from Persistencia.Models import (Membresias, UsuarioMembresia)
+from Persistencia.Models.Membresias import Membresias
+from Persistencia.Models.UsuarioMembresia import UsuarioMembresia
+
+from Schemas.UsuarioMembresiaSchema import MiSuscripcion
+
 
 
 class UsuarioMembresiaCrud:
@@ -20,21 +26,23 @@ class UsuarioMembresiaCrud:
         try:
             stmt = (
                 select(
-                    UsuarioMembresia.UsuarioMembresia.cod_usuario,
-                    UsuarioMembresia.UsuarioMembresia.cod_membresia,
-                    Membresias.Membresias.nombre_membresia,
-                    Membresias.Membresias.descripcion_membresia,
-                    Membresias.Membresias.caracteristicas,
-                    UsuarioMembresia.UsuarioMembresia.estado_membresia,
-                    cast(UsuarioMembresia.UsuarioMembresia.created_at.label("fecha_compra"), Date),
-                    cast(UsuarioMembresia.UsuarioMembresia.fecha_vencimiento, Date),
-                    UsuarioMembresia.UsuarioMembresia.order_id_paypal,
+                    UsuarioMembresia.cod_usuario,
+                    UsuarioMembresia.cod_membresia,
+                    Membresias.nombre_membresia,
+                    Membresias.descripcion_membresia,
+                    Membresias.caracteristicas,
+                    Membresias.cant_comprobantes_carga,
+                    UsuarioMembresia.estado_membresia,
+                    UsuarioMembresia.cant_comprobantes_permitidos,
+                    cast(UsuarioMembresia.created_at.label("fecha_compra"), Date),
+                    cast(UsuarioMembresia.fecha_vencimiento, Date),
+                    UsuarioMembresia.order_id_paypal,
                 )
                 .join(
-                    UsuarioMembresia.UsuarioMembresia,
-                    Membresias.Membresias.cod_membresia == UsuarioMembresia.UsuarioMembresia.cod_membresia,
+                    UsuarioMembresia,
+                    Membresias.cod_membresia == UsuarioMembresia.cod_membresia,
                 )
-                .where(UsuarioMembresia.UsuarioMembresia.estado_membresia == "vigente")
+                .where(UsuarioMembresia.estado_membresia == "vigente")
             )
 
             # Ejecutar la consulta y obtener resultados como diccionarios
@@ -53,6 +61,7 @@ class UsuarioMembresiaCrud:
             return resultado
         except Exception as e:
             raise HTTPException(status_code=500,detail=str(e)) from e
+
     def update_estado_suscripcion(self, order_id_paypal : str, db: Session):
         suscripcion = db.query(UsuarioMembresia.UsuarioMembresia).where(UsuarioMembresia.UsuarioMembresia.order_id_paypal == order_id_paypal).first()
 
@@ -64,3 +73,24 @@ class UsuarioMembresiaCrud:
                 status_code=200,
                 content={"message": "Tu suscripción ha expirado"}
             )
+    
+    def descontar_cant_comprobantes(self, cod_usuario, db : Session):
+        suscripcion = db.query(UsuarioMembresia).where(
+            and_(
+                    UsuarioMembresia.cod_usuario == cod_usuario,
+                    UsuarioMembresia.estado_membresia == "vigente",
+                )
+        ).first()
+
+        suscripcion.cant_comprobantes_permitidos -= 1
+        db.add(suscripcion)  # Agregar el objeto actualizado al contexto de la sesión
+        db.commit()
+        db.refresh(suscripcion)
+        
+        if(suscripcion.cant_comprobantes_permitidos == 0):
+            self.update_estado_suscripcion(suscripcion.order_id_paypal, db)
+            raise HTTPException(status_code=500,detail="Llegaste al limite de carga de comprobates en tu suscripción") from e
+
+        return suscripcion
+        
+            

@@ -15,6 +15,8 @@ class UsuarioMembresia(Base):
     order_id_paypal = Column(String(50), nullable=False, primary_key=True)
     estado_membresia = Column(String(20), nullable=False, default="vigente")
     fecha_vencimiento = Column(DateTime, default= datetime.now(ecuador_tz) + timedelta(days=365))
+    cant_comprobantes_permitidos = Column(Integer, nullable=False)
+
     created_at = Column(DateTime, nullable=False, default=datetime.now(ecuador_tz))
     updated_at = Column(
         DateTime,

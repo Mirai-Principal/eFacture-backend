@@ -2,7 +2,6 @@ import os, time, shutil
 from datetime import timedelta, datetime
 import xml.etree.ElementTree as ET
 
-
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -22,6 +21,8 @@ from selenium.common.exceptions import (
 
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 from Schemas.ComprobantesSchema import ParametrosExtraccion, CompradorCreate, ComprobantesCreate, DetallesCreate, ComprobantesLista
+
+from Middlewares.JWTMiddleware import OptionsToken
 
 class ComprobantesLogica:
     def __init__(self):
@@ -62,10 +63,10 @@ class ComprobantesLogica:
 
     def extraer_comprobantes(self, datos : ParametrosExtraccion):
         # estas lineas de aqui es para probar la carga, se puede borrar si quiere 
-        # return JSONResponse(
-        #         status_code=200,
-        #         content={"message": 'Se finalizo la descarga de comprobantes'}
-        #     )
+        return JSONResponse(
+                status_code=200,
+                content={"message": 'Se finalizo la descarga de comprobantes'}
+            )
         # Paso 1: inicializa el navegador 
         driver = self.RunProfile()
         # Abre la URL deseada
@@ -234,7 +235,13 @@ class ComprobantesLogica:
                 content={"message": respuesta}
             )
 
-    def cargar_comprobantes(self, db : Session):
+    def cargar_comprobantes(self, request: Request, db : Session):
+        token = request.headers.get("Authorization")
+        token = token.split(" ")
+        payload = OptionsToken.get_info_token(token[1])
+        correo = payload.get("sub")
+        usuario_cuenta = self.facade.get_user_by_email(correo, db)
+
         for index, filename in enumerate(os.listdir(self.output_dir)):
             if filename.endswith(".xml"):
                 with open(os.path.join(self.output_dir, filename), "r", encoding="utf-8") as file:
@@ -252,8 +259,6 @@ class ComprobantesLogica:
                     infoFactura = root.find('infoFactura')
                     fechaEmision = infoFactura.find("fechaEmision").text
                     importeTotal = infoFactura.find('importeTotal').text
-
-
 
                 # comprador
                     razonSocialComprador = infoFactura.find('razonSocialComprador').text
@@ -297,6 +302,7 @@ class ComprobantesLogica:
                                 importe_total = importeTotal
                             )
                             resultado = self.facade.comprobante_insert(datos_comprobante, db)
+                        
                             self.cod_comprobante = resultado.cod_comprobante
 
                             # detalles
@@ -324,6 +330,9 @@ class ComprobantesLogica:
                                     self.facade.detalle_insert(datos_detalle, db)
                                 except Exception as e:
                                     raise HTTPException(status_code=500, detail=f"Ocurrio un error en detalles comprobrantes {str(e)}") from e
+                                
+                            #? descontar cantidad de comprobantes que puede cargar en sus plan de suscripcion
+                            print(self.facade.descontar_cant_comprobantes(usuario_cuenta.cod_usuario, db))
                         else:
                             self.cod_comprobante = comprobante.cod_comprobante
                     except Exception as e:

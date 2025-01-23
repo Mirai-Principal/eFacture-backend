@@ -106,7 +106,7 @@ class FraccionBasicaCrud:
             )
         except IntegrityError as e:
             db.rollback()
-            raise HTTPException(status_code=400, detail=f"Ya existe una {tabla} con los mismo datos") from e
+            raise HTTPException(status_code=400, detail=f"Ya existe datos para este periodo en {tabla}") from e
         except DataError as e:
             db.rollback()
             raise HTTPException(status_code=400, detail="Error de datos: tipos o formato incorrecto") from e

@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
+
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 
 from Persistencia.Models import (Membresias, UsuarioMembresia)
+
 from Schemas import (MembresiaSchema)
 
 class MembresiasCrud:
@@ -54,6 +56,7 @@ class MembresiasCrud:
             cod_membresia = datos.cod_membresia,
             order_id_paypal = datos.orderID,
             estado_membresia = datos.estado_membresia,
+            cant_comprobantes_permitidos = datos.cant_comprobantes_permitidos,
         )
         try:
             # Confirmar los cambios en la base de datos
@@ -65,6 +68,7 @@ class MembresiasCrud:
             db.rollback()
             raise HTTPException(status_code=500, detail=f"Error interno: No se han guardado los datos {str(e)}") from e
 
+    
     def get_exception(self, consulta, db : Session):
         try:
             # Confirmar los cambios en la base de datos

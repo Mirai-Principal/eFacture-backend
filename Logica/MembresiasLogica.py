@@ -12,7 +12,8 @@ from Persistencia.Conexion import Config
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 from Middlewares.JWTMiddleware import OptionsToken
 
-from Schemas.MembresiaSchema import Membresia
+from Schemas.MembresiaSchema import Membresia, PagoMembresia
+
 
 class MembresiasLogica:
     def __init__(self):
@@ -45,7 +46,7 @@ class MembresiasLogica:
     def visualizar_membresia(self, cod, db : Session):
         return self.facade.visualizar_membresia(cod, db)
 
-    def generar_suscripcion(self, token : str, datos, db : Session):
+    def generar_suscripcion(self, token : str, datos : PagoMembresia, db : Session):
         # obtener cod_usuario
         payload = OptionsToken.get_info_token(token)
         correo = payload.get("sub")
@@ -55,6 +56,8 @@ class MembresiasLogica:
         datos.estado_membresia = "vigente"
 
         membresia = self.visualizar_membresia(datos.cod_membresia, db)
+        datos.cant_comprobantes_permitidos = membresia.cant_comprobantes_carga
+
         if float(membresia.precio) == float(datos.precio):
             try:
                 return self.facade.generar_suscripcion(datos, db)
