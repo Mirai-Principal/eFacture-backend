@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Float, Text, DateTime, Numeric, CheckConstraint, ForeignKey, UniqueConstraint
 from Persistencia.Conexion.DataBase import Base
 
 import pytz
@@ -11,6 +11,7 @@ class Categorias(Base):
     __tablename__ = 'categorias'
     __table_args__ = (
         CheckConstraint('cant_fraccion_basica >= 0', name="ckc_cant_fraccion_bas_categori"),
+        UniqueConstraint('cod_fraccion_basica', 'categoria', name='unique_cod_fraccion_categoria'),
         {"schema": "efacture_repo"}  # Especifica el esquema como diccionario
     )
 

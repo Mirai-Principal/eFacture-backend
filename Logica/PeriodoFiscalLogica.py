@@ -11,6 +11,9 @@ class PeriodoFiscal:
     def periodo_fiscal_insert(self, datos, db : Session):
         return self.facade.periodo_fiscal_insert(datos, db)
 
+    def periodo_fiscal_lista_select(self, db :Session):
+        return self.facade.periodo_fiscal_lista_select(db)
+        
     def periodo_fiscal_lista(self, db : Session):
         return self.facade.periodo_fiscal_lista(db)
     def periodo_fiscal_delete(self, datos, db : Session):

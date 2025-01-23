@@ -13,6 +13,8 @@ FraccionBasicaLogica = FraccionBasicaLogica()
 
 @router.post('/fraccion_basica_insert')
 def fraccion_basica_insert( datos : FraccionBasicaCreate, db : Session = Depends(DataBase.get_db)):
+    if datos.cod_fraccion_basica != 0:
+        return FraccionBasicaLogica.fraccion_basica_update(datos, db)
     return FraccionBasicaLogica.fraccion_basica_insert(datos, db)
 
 @router.get('/fraccion_basica_list' , response_model=List[FraccionBasicaList])

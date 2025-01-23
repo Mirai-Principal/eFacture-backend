@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 from Persistencia.Models.FraccionBasicaDesgravada import FraccionBasicaDesgravada
+from Persistencia.Models.Categorias import Categorias
 from Persistencia.Models.PeriodoFiscal import PeriodoFiscal
 from Schemas.FraccionBasicaSchema import (FraccionBasicaCreate, FraccionBasicaDelete)
 
@@ -31,7 +32,6 @@ class FraccionBasicaCrud:
                     PeriodoFiscal.cod_periodo_fiscal == FraccionBasicaDesgravada.cod_periodo_fiscal,
                 )
                 .order_by(PeriodoFiscal.periodo_fiscal.desc())
-             
         )
 
         # Ejecutar la consulta y obtener resultados como diccionarios
@@ -46,6 +46,26 @@ class FraccionBasicaCrud:
     
     def fraccion_basica_find_one(self, cod_fraccion_basica, db : Session):
         return db.query(FraccionBasicaDesgravada).where(FraccionBasicaDesgravada.cod_fraccion_basica == cod_fraccion_basica).first()
+    
+    def fraccion_basica_find_one_by_periodo(self, periodo_fiscal, db : Session):
+        return  db.query(
+                    FraccionBasicaDesgravada.cod_fraccion_basica,
+                )\
+                .join(PeriodoFiscal, PeriodoFiscal.cod_periodo_fiscal == FraccionBasicaDesgravada.cod_periodo_fiscal)\
+                .where(PeriodoFiscal.periodo_fiscal == periodo_fiscal)\
+                .first()
+
+
+    def fraccion_basica_update(self, datos : FraccionBasicaCreate, db : Session):
+        resultado = db.query(FraccionBasicaDesgravada).where(FraccionBasicaDesgravada.cod_fraccion_basica == datos.cod_fraccion_basica).first()
+        if not resultado:
+            return JSONResponse(
+                status_code=200,
+                content={"message": "No se encontró el registro"}
+            )
+        
+        resultado.valor_fraccion_basica = datos.valor_fraccion_basica
+        return self.get_exception(resultado, "Fracción Básica Desgravada", db)
 
 
     def fraccion_basica_delete(self, datos : FraccionBasicaDelete, db : Session):
@@ -55,14 +75,24 @@ class FraccionBasicaCrud:
                 status_code=200,
                 content={"message": "No se encontró la Fracción Básica Desgravada"}
             )
-        try:
-            db.delete(resultado)
-            db.commit()  # Confirma los cambios en la base de datos
-            return self.fraccion_basica_list(db)
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=500, detail=f"Ocurrio un error {str(e)}") from e
 
+        tiene_hijos = db.query(
+                FraccionBasicaDesgravada,
+            )\
+            .join(Categorias, Categorias.cod_fraccion_basica == FraccionBasicaDesgravada.cod_fraccion_basica)\
+            .where(FraccionBasicaDesgravada.cod_fraccion_basica == datos.cod_fraccion_basica)\
+            .all()
+        # verifica q no tenga hijos al momento de eliminar
+        if len(tiene_hijos) == 0:
+            try:
+                db.delete(resultado)
+                db.commit()  # Confirma los cambios en la base de datos
+                return self.fraccion_basica_list(db)
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(status_code=500, detail=f"Ocurrio un error {str(e)}") from e
+        else:
+            raise HTTPException(status_code=500, detail="No se puede eliminar porque está referenciado en otra tabla.")
 
     def get_exception(self, consulta, tabla, db : Session):
         try:

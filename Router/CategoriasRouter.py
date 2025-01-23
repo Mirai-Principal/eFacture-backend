@@ -19,3 +19,16 @@ def categorias_insert( datos : CategoriaCreate, db : Session = Depends(DataBase.
 @router.get('/categorias_lista' , response_model=List[CategoriaLista])
 def categorias_lista(db : Session = Depends(DataBase.get_db)):
     return CategoriasLogica.categorias_lista(db)
+
+@router.get('/categorias_por_periodo_lista/{cod_fraccion_basica}' , response_model=List[CategoriaLista])
+def categorias_por_periodo_lista(cod_fraccion_basica : int, db : Session = Depends(DataBase.get_db)):
+    return CategoriasLogica.categorias_por_periodo_lista(cod_fraccion_basica, db)
+
+@router.delete('/categoria/{cod_categoria}')
+def categoria_delete(cod_categoria : int, db : Session = Depends(DataBase.get_db)):
+    return CategoriasLogica.categoria_delete(cod_categoria, db)
+
+#? lista categorias por periodo fiscal para mostrar en la lista de comprobantes
+@router.get('/categorias_por_anio_lista/{anio}' , response_model=List[CategoriaLista])
+def categorias_por_anio_lista(anio : int, db : Session = Depends(DataBase.get_db)):
+    return CategoriasLogica.categorias_por_anio_lista(anio, db)

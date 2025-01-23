@@ -31,6 +31,7 @@ class ComprobantesLogica:
         self.output_dir = os.path.abspath("comprobantes")  # carpeta de descarga
         self.cod_comprador = None
         self.cod_comprobante = None
+        
     def RunProfile(self):
         # chrome://version/
         chrome_options = Options()

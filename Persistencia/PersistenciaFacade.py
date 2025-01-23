@@ -58,22 +58,33 @@ class AccesoDatosFacade:
         return self.PeriodoFiscalCrud.periodo_fiscal_delete(datos, db)
     def periodo_fiscal_find_one(self, cod_periodo_fiscal, db : Session):
         return self.PeriodoFiscalCrud.periodo_fiscal_find_one(cod_periodo_fiscal, db)
+    def periodo_fiscal_lista_select(self, db : Session):
+        return self.PeriodoFiscalCrud.periodo_fiscal_lista_select(db)
 
 # feccion basica desgravada
     def fraccion_basica_insert(self, datos, db : Session):
         return self.FraccionBasicaCrud.fraccion_basica_insert(datos, db)
+    def fraccion_basica_update(self, datos, db : Session):
+        return self.FraccionBasicaCrud.fraccion_basica_update(datos, db)
     def fraccion_basica_list(self, db):
         return self.FraccionBasicaCrud.fraccion_basica_list(db)
     def fraccion_basica_delete(self, datos, db : Session):
         return self.FraccionBasicaCrud.fraccion_basica_delete(datos, db)
+    def fraccion_basica_find_one_by_periodo(self, periodo_fiscal, db : Session):
+        return self.FraccionBasicaCrud.fraccion_basica_find_one_by_periodo(periodo_fiscal, db)
 
     # categorias
     def categoria_insert(self, datos, db : Session):
         return self.CategoriasCrud.categoria_insert(datos, db)
     def categorias_lista(self, db : Session):
         return self.CategoriasCrud.categorias_lista(db)
+    def categorias_por_periodo_lista(self, cod_fraccion_basica, db : Session):
+        return self.CategoriasCrud.categorias_por_periodo_lista(cod_fraccion_basica, db)
     def categoria_update(self, datos, db : Session):
         return self.CategoriasCrud.categoria_update(datos, db)
+    def categoria_delete(self, cod_categoria, db : Session):
+        return self.CategoriasCrud.categoria_delete(cod_categoria, db)
+        
 
     # comprador
     def comprador_insert(self, datos, db : Session):
@@ -103,3 +114,5 @@ class AccesoDatosFacade:
     #AGP
     def agp_datos_lista(self, datos, db :Session):
         return self.GenerarAgpCrud.agp_datos_lista(datos, db)
+    def agp_datos_beneficiaria_pension(self, datos, db : Session):
+        return self.GenerarAgpCrud.agp_datos_beneficiaria_pension(datos, db)

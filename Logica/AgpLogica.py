@@ -10,7 +10,7 @@ import pandas as pd
 
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 
-from Schemas.AnexoGatosPersonalesSchema import AgpDatosConsulta
+from Schemas.AnexoGatosPersonalesSchema import AgpDatosConsulta, AgpDatosGenerarXml
 
 
 
@@ -33,8 +33,8 @@ class AgpLogica:
         )
         return self.facade.agp_datos_lista(datos, db)
 
-    def generar_agp(self, identificacion_comprador, cod_periodo_fiscal, db : Session):
-        agp = self.agp_datos_lista(identificacion_comprador, cod_periodo_fiscal, db)
+    def generar_agp(self, datos : AgpDatosGenerarXml, db : Session):
+        agp = self.agp_datos_lista(datos.identificacion_comprador, datos.cod_periodo_fiscal, db)
         # Datos para la tabla
 
         # Crear DataFrame
@@ -50,12 +50,75 @@ class AgpLogica:
             inplace=True,
         )
 
+         # Reordenar las columnas
+        column_order = [
+            "RUC PROVEEDOR",
+            "CANTIDAD DE COMPROBANTES",
+            "BASE IMPONIBLE",
+            "TIPO DE GASTO",
+        ]
+        df = df[column_order]
+
         # Formatear la columna BASE_IMPONIBLE
-        df["BASE IMPONIBLE"] = df["BASE IMPONIBLE"].apply(lambda x: f"$ {x:.2f}")
+        # df["BASE IMPONIBLE"] = df["BASE IMPONIBLE"].apply(lambda x: f"$ {x:.2f}")
+
+        #para las pensiones de alimentos
+        if datos.beneficiariaPension:
+            # formar dataframe a partir de los datos
+            periodo_fiscal = self.facade.periodo_fiscal_find_one(datos.cod_periodo_fiscal, db)
+            datos.periodo_fiscal = periodo_fiscal.periodo_fiscal
+            
+            datosBeneficiariaPension = self.facade.agp_datos_beneficiaria_pension(datos, db)
+            df2 = pd.DataFrame(datosBeneficiariaPension)
+            df2.rename(
+                columns={
+                    "valor_pensiones": "MONTO PENSIONES ALIMENTICIAS",
+                    "tipo_gasto": "TIPO DE GASTO",
+                },
+                inplace=True,
+            )
+
+            df2["TIPO ID BENEFICIARIO PENSIÓN ALIMENTICIA"] = "CEDULA"
+            df2["NÚMERO ID BENEFICIARIO PENSIÓN ALIMENTICIA"] = datos.beneficiariaPension
+
+
+            # Reordenar las columnas para que la nueva columna sea la primera
+            column_order = [
+                "TIPO ID BENEFICIARIO PENSIÓN ALIMENTICIA",
+                "NÚMERO ID BENEFICIARIO PENSIÓN ALIMENTICIA",
+                "MONTO PENSIONES ALIMENTICIAS",
+                "TIPO DE GASTO",
+            ]
+            df2 = df2[column_order]
+        else:
+            datosBeneficiariaPension = {
+            "TIPO ID BENEFICIARIO PENSIÓN ALIMENTICIA": [],
+            "NÚMERO ID BENEFICIARIO PENSIÓN ALIMENTICIA": [],
+            "MONTO PENSIONES ALIMENTICIAS": [],
+            "TIPO DE GASTO": [],
+            }
+            df2 = pd.DataFrame(datosBeneficiariaPension)
+
+        
+
+        #para GSP Valor No Cubierto Aseguradora
+        if not datos.valorNoAsegurado:
+            datos.valorNoAsegurado = 0
+        datosValorNoAsegurado = {
+        "VALORES NO CUBIERTOS POR ASEGURADORAS": [datos.valorNoAsegurado],
+        }
+        df3 = pd.DataFrame(datosValorNoAsegurado)
+
 
         # Guardar el Excel en memoria
         output = io.BytesIO()
-        df.to_excel(output, index=False, sheet_name="Detalle Gastos con Proveedor")
+
+        # Usar ExcelWriter para escribir múltiples hojas
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Detalle Gastos con Proveedor")
+            df2.to_excel(writer, index=False, sheet_name="Detalle GSP Pensión Alimenticia")
+            df3.to_excel(writer, index=False, sheet_name="GSP ValorNoCubiertoAseguradora")
+
         output.seek(0)  # Volver al inicio del archivo
 
         # Devolver el archivo como respuesta con StreamingResponse

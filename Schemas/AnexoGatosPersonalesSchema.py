@@ -16,6 +16,13 @@ class AgpDatosConsulta(BaseModel):
     identificacion_comprador : str
     periodo_fiscal : int
 
+class AgpDatosGenerarXml(BaseModel):
+    identificacion_comprador : str
+    cod_periodo_fiscal : int
+    beneficiariaPension : str = None
+    valorNoAsegurado : float | str = None
+    periodo_fiscal : int = None
+
 class AgpDatos(BaseModel):
     ruc_proveedor: str
     base_imponible : float

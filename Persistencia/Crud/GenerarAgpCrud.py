@@ -16,7 +16,7 @@ from Persistencia.Models.Comprador import Comprador
 
 
 from Persistencia.Models.PeriodoFiscal import PeriodoFiscal
-from Schemas.AnexoGatosPersonalesSchema import (AgpCreate, AgpDatosConsulta)
+from Schemas.AnexoGatosPersonalesSchema import (AgpCreate, AgpDatosConsulta, AgpDatosGenerarXml)
 
 class GenerarAgpCrud:    
     def agp_datos_lista(self, datos : AgpDatosConsulta, db : Session):
@@ -48,7 +48,33 @@ class GenerarAgpCrud:
             print(str(e))
             raise HTTPException(status_code=500, detail=f"Ocurrio un error {str(e)}") from e
 
-
+    def agp_datos_beneficiaria_pension(self, datos : AgpDatosGenerarXml, db : Session):
+        try:
+            resultado = db.query(
+                func.sum(Detalles.detalle_valor).label("valor_pensiones"),
+                Categorias.categoria.label("tipo_gasto"),
+            )\
+            .select_from(Comprobantes)\
+            .join(Detalles, Detalles.cod_comprobante == Comprobantes.cod_comprobante)\
+            .join(Categorias, Categorias.cod_categoria == Detalles.cod_categoria)\
+            .join(Comprador, Comprador.cod_comprador == Comprobantes.cod_comprador)\
+            .group_by(Categorias.categoria)\
+            .where(
+                and_(
+                    extract('year', Comprobantes.fecha_emision) == datos.periodo_fiscal,
+                    Comprador.identificacion_comprador == datos.beneficiariaPension
+                )
+            )\
+            .all()
+            if not resultado:
+                return JSONResponse(
+                    status_code=200,
+                    content={"message": "No hay datos registrados"}
+                )
+            return resultado
+        except Exception as e:
+            print(str(e))
+            raise HTTPException(status_code=500, detail=f"Ocurrio un error {str(e)}") from e
 
 
     def get_exception(self, consulta, tabla, db : Session):
