@@ -2,3 +2,4 @@ entorno
 comprobantes
 __pycache__/
 *.pyc
+*.csv

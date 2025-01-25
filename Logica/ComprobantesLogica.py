@@ -63,10 +63,10 @@ class ComprobantesLogica:
 
     def extraer_comprobantes(self, datos : ParametrosExtraccion):
         # estas lineas de aqui es para probar la carga, se puede borrar si quiere 
-        return JSONResponse(
-                status_code=200,
-                content={"message": 'Se finalizo la descarga de comprobantes'}
-            )
+        # return JSONResponse(
+        #         status_code=200,
+        #         content={"message": 'Se finalizo la descarga de comprobantes'}
+        #     )
         # Paso 1: inicializa el navegador 
         driver = self.RunProfile()
         # Abre la URL deseada
@@ -115,7 +115,7 @@ class ComprobantesLogica:
             print("seleccion de parametros ok")
 
             # Paso 5: Hacer clic en Consultar
-            driver.find_element(By.ID, "btnRecaptcha").click()
+            driver.find_element(By.ID, "frmPrincipal:btnConsultar").click()
             time.sleep(1)
             
             print("click en consultar")

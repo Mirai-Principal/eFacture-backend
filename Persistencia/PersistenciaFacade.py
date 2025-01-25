@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from Persistencia.Crud import (
     UsuariosCrud, MembresiasCrud, UsuarioMembresiaCrud, 
     PeriodoFiscalCrud , CategoriasCrud, ComprobantesCrud, 
-    FraccionBasicaCrud, GenerarAgpCrud
+    FraccionBasicaCrud, GenerarAgpCrud, PrediccionCrud
     )
 
 
@@ -18,6 +18,7 @@ class AccesoDatosFacade:
         self.ComprobantesCrud = ComprobantesCrud.ComprobantesCrud()
         self.FraccionBasicaCrud = FraccionBasicaCrud.FraccionBasicaCrud()
         self.GenerarAgpCrud = GenerarAgpCrud.GenerarAgpCrud()
+        self.PrediccionCrud = PrediccionCrud.PrediccionCrud()
 
 
 # Métodos relacionados con usuarios
@@ -118,3 +119,11 @@ class AccesoDatosFacade:
         return self.GenerarAgpCrud.agp_datos_lista(datos, db)
     def agp_datos_beneficiaria_pension(self, datos, db : Session):
         return self.GenerarAgpCrud.agp_datos_beneficiaria_pension(datos, db)
+
+
+    # PREDICCION
+    def generar_dataset(self, db : Session):
+        return self.PrediccionCrud.generar_dataset(db)
+
+    def dataset_entrenado_insert(self, datos, db : Session):
+        return self.PrediccionCrud.dataset_entrenado_insert(datos, db)
