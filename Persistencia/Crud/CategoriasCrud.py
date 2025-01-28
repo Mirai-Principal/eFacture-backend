@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date, select
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
@@ -119,6 +119,9 @@ class CategoriasCrud:
                 raise HTTPException(status_code=500, detail=f"Ocurrio un error {str(e)}") from e
         else:
             raise HTTPException(status_code=500, detail="No se puede eliminar porque está referenciado en otra tabla.")
+
+    def categorias_unicas_get(self, db):
+        return db.query(Categorias.categoria).distinct().all()
 
     def get_exception(self, consulta, tabla, db : Session):
         try:

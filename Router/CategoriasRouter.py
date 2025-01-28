@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from Logica.CategoriasLogica import CategoriasLogica
-from Schemas.CategoriasSchema import CategoriaCreate, CategoriaLista
+from Schemas.CategoriasSchema import CategoriaCreate, CategoriaLista, CategoriasUnicas
 
 from Persistencia.Conexion import DataBase
 
@@ -32,3 +32,7 @@ def categoria_delete(cod_categoria : int, db : Session = Depends(DataBase.get_db
 @router.get('/categorias_por_anio_lista/{anio}' , response_model=List[CategoriaLista])
 def categorias_por_anio_lista(anio : int, db : Session = Depends(DataBase.get_db)):
     return CategoriasLogica.categorias_por_anio_lista(anio, db)
+
+@router.get('/categorias_unicas_get' , response_model=List[CategoriasUnicas])
+def categorias_unicas_get( db : Session = Depends(DataBase.get_db)):
+    return CategoriasLogica.categorias_unicas_get(db)

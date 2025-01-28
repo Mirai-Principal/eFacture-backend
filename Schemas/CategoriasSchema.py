@@ -13,4 +13,7 @@ class CategoriaLista(CategoriaCreate):
     valor_fraccion_basica : int
     periodo_fiscal: int
 
+class CategoriasUnicas(BaseModel):
+    categoria : str
+
   

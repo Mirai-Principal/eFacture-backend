@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from Logica.PrediccionLogica import PrediccionLogica
-from Schemas.PrediccionSchema import DatasetEntrenamientoCreate
+from Schemas.PrediccionSchema import DatosPrediccion, DatosHistorico, DatosCategoricos
 
 from Persistencia.Conexion import DataBase
 
@@ -19,6 +19,18 @@ PrediccionLogica = PrediccionLogica()
 def generar_dataset(db : Session = Depends(DataBase.get_db)):
     return PrediccionLogica.generar_dataset( db)
 
-@router.get('/consultar_prediccion/{usuario}/{categoria}')
-def consultar_prediccion(usuario, categoria, db : Session = Depends(DataBase.get_db)):
+@router.get('/consultar_prediccion/{usuario}/{categoria}', response_model = List[DatosPrediccion])
+def consultar_prediccion(usuario : str, categoria : str, db : Session = Depends(DataBase.get_db)):
     return PrediccionLogica.consultar_prediccion(usuario, categoria, db)
+
+@router.get('/consultar_historico/{usuario}/{categoria}', response_model = List[DatosHistorico])
+def consultar_historico(usuario : str, categoria : str,db : Session = Depends(DataBase.get_db)):
+    return PrediccionLogica.consultar_historico(usuario, categoria, db)
+
+@router.get('/consultar_prediccion_categorico/{usuario}', response_model = List[DatosCategoricos])
+def consultar_prediccion_categorico(usuario : str, db : Session = Depends(DataBase.get_db)):
+    return PrediccionLogica.consultar_prediccion_categorico(usuario, db)
+
+@router.get('/consultar_historico_categorico/{usuario}', response_model = List[DatosCategoricos])
+def consultar_historico_categorico(usuario : str, db : Session = Depends(DataBase.get_db)):
+    return PrediccionLogica.consultar_historico_categorico(usuario, db)

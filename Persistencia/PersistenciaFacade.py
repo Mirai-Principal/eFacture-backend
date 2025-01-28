@@ -87,6 +87,8 @@ class AccesoDatosFacade:
         return self.CategoriasCrud.categoria_update(datos, db)
     def categoria_delete(self, cod_categoria, db : Session):
         return self.CategoriasCrud.categoria_delete(cod_categoria, db)
+    def categorias_unicas_get(self, db : Session):
+        return self.CategoriasCrud.categorias_unicas_get( db)
         
 
     # comprador
@@ -127,3 +129,14 @@ class AccesoDatosFacade:
 
     def dataset_entrenado_insert(self, datos, db : Session):
         return self.PrediccionCrud.dataset_entrenado_insert(datos, db)
+    def consultar_prediccion(self, usuario, categoria, db : Session):
+        return self.PrediccionCrud.consultar_prediccion(usuario, categoria, db)
+
+    def consultar_historico(self, usuario, categoria, db: Session):
+        return self.PrediccionCrud.consultar_historico(usuario, categoria, db)
+
+    def consultar_prediccion_categorico(self, usuario, db : Session):
+        return self.PrediccionCrud.consultar_prediccion_categorico(usuario, db)  
+        
+    def consultar_historico_categorico(self, usuario, db : Session):
+        return self.PrediccionCrud.consultar_historico_categorico(usuario, db)

@@ -4,8 +4,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 
-from datetime import timedelta
-
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -107,17 +105,30 @@ class PrediccionLogica:
         futuros = []
         # Extraer el último año y mes
         año_inicial = ultima_fecha.year
-        mes_inicial = ultima_fecha.month
+        mes_inicial = ultima_fecha.month + 1
         
         for usuario in usuarios:
             for categoria in categorias:
+                año = año_inicial
+                anios_futuros = 0
                 for i in range(1, meses_futuros + 1):
                     # Calcular el mes y el año futuros
                     mes = ((mes_inicial + i - 1) % 12) or 12  # Mantener meses entre 1 y 12
-                    año = año_inicial + ((mes_inicial + i - 1) // 12)  # Ajustar el año si el mes excede 12
                     futuros.append([usuario, categoria, año, mes])
+                    if mes == 12:
+                        anios_futuros += 1
+                        año = año_inicial + anios_futuros   # Ajustar el año si el mes excede 12
         return futuros
 
     # Filtrar datos por un usuario y categoría específicos
-    def consultar_prediccion(self, usuario, categoria, db : Session):
-        return
+    def consultar_prediccion(self, usuario, categoria, db : Session):    
+        return self.facade.consultar_prediccion(usuario,categoria, db)
+
+    def consultar_historico(self, usuario, categoria, db: Session):
+        return self.facade.consultar_historico(usuario, categoria, db)
+    
+    def consultar_prediccion_categorico(self, usuario, db : Session):
+        return self.facade.consultar_prediccion_categorico(usuario, db)
+    def consultar_historico_categorico(self, usuario, db : Session):
+        return self.facade.consultar_historico_categorico(usuario, db)
+    

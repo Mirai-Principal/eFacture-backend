@@ -26,3 +26,6 @@ class CategoriasLogica:
 
     def categoria_delete(self, cod_categoria, db : Session):
         return self.facade.categoria_delete(cod_categoria, db)
+
+    def categorias_unicas_get(self, db : Session):
+        return self.facade.categorias_unicas_get(db)
