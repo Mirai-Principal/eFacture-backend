@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, Request, Response
-from fastapi.responses import JSONResponse
+from typing import List
+
 
 from fastapi.security import OAuth2PasswordBearer
 # import json
 from sqlalchemy.orm import Session
 
 from Logica.UsuariosLogica import UsuariosLogica
-from Schemas import UsuarioSchema
-
+from Schemas.UsuarioSchema import (UsuarioCreate, UsuarioLogin, UsuarioRecoverPassword,
+                                    UsuarioUpdatePassword, UsuarioUpdate, UsuariosLista, )
 
 from Persistencia.Conexion import DataBase
 
@@ -21,22 +22,35 @@ UsuariosLogica = UsuariosLogica()
 def index():
     return {"message": "eFacture API"}
 
-@router.post("/registrar", response_model=UsuarioSchema.UsuarioCreate)
-def registrar_usuario(user: UsuarioSchema.UsuarioCreate, db: Session = Depends(DataBase.get_db)):
+@router.post("/registrar", response_model=UsuarioCreate)
+def registrar_usuario(user: UsuarioCreate, db: Session = Depends(DataBase.get_db)):
     return UsuariosLogica.registrar_usuario(user, db)
 
 @router.post("/login")
-def login(user: UsuarioSchema.UsuarioLogin, db: Session = Depends(DataBase.get_db)):
-    return UsuariosLogica.login(user, db)
+def login(request: Request, user: UsuarioLogin, db: Session = Depends(DataBase.get_db)):
+    return UsuariosLogica.login(request, user, db)
 
 @router.post("/password_reset")
-def password_reset(request: Request, data: UsuarioSchema.UsuarioRecoverPassword,  db: Session = Depends(DataBase.get_db)):
+def password_reset(request: Request, data: UsuarioRecoverPassword,  db: Session = Depends(DataBase.get_db)):
     return UsuariosLogica.password_reset(request, data, db)
 
 @router.post("/cambiar_password")
-def cambiar_password(data: UsuarioSchema.UsuarioUpdatePassword, db: Session = Depends(DataBase.get_db), token: str = Depends(oauth2_scheme)):
+def cambiar_password(data: UsuarioUpdatePassword, db: Session = Depends(DataBase.get_db), token: str = Depends(oauth2_scheme)):
     return UsuariosLogica.cambiar_password(token, data, db)
 
 @router.post("/validate_token")
 def validate_token(request : Request):
     return {"message": "Token válido"}
+
+@router.get("/clientes_lista", response_model=List[UsuariosLista])
+def usuarios_lista(db: Session = Depends(DataBase.get_db)):
+    return UsuariosLogica.clientes_lista(db)
+
+@router.get("/usuario")
+def usuario_by_correo(request : Request, db = Depends(DataBase.get_db)):
+    return UsuariosLogica.usuario_by_correo(request, db)
+
+# actualizar usuario
+@router.post("/usuario")
+def usuario_update(datos : UsuarioUpdate, db: Session = Depends(DataBase.get_db)):
+    return UsuariosLogica.usuario_update(datos, db)  

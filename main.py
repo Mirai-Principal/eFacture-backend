@@ -10,7 +10,7 @@ from Middlewares import JWTMiddleware
 from Router import (
     UsuariosRouter, MembresiasRouter, UsuarioMembresiaRouter, 
     CategoriasRouter, ComprobantesRouter, PeriodoFiscalRouter, 
-    FraccionBasicaRouter, AgpRouter, PrediccionRouter
+    FraccionBasicaRouter, AgpRouter, PrediccionRouter, ConfiguracionRouter
     )
 
 app = FastAPI()
@@ -62,4 +62,5 @@ app.include_router(FraccionBasicaRouter.router, tags=["Fraccion Basica"])
 app.include_router(AgpRouter.router, tags=["Anexo de gatos personales"])
 
 app.include_router(PrediccionRouter.router, tags=["Generacion y prediccion de datos"])
+app.include_router(ConfiguracionRouter.router, tags=["Configuracion de la aplicacion"])
 

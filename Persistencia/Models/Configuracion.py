@@ -10,12 +10,7 @@ ecuador_tz = pytz.timezone('America/Guayaquil')
 class Configuracion(Base):
     __tablename__ = 'configuracion'
     __table_args__ = {"schema": "efacture_repo"}  # Especifica el esquema aquí
-    cod_comprobante = Column(
-        Integer,
-        primary_key=True,
-        nullable=False,
-        autoincrement=True,
-    )
+    
     cod_regla = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     nombre = Column(String(50), nullable=False, unique=True)
     descripcion = Column(Text, nullable=False)

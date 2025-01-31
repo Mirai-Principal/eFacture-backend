@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from fastapi import  HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -5,6 +7,24 @@ from Logica import Auth, Email
 
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 from Middlewares.JWTMiddleware import OptionsToken
+
+import pytz
+# Definir la zona horaria de Ecuador
+ecuador_tz = pytz.timezone('America/Guayaquil')
+
+import operator
+# Diccionario que mapea operadores a funciones
+OPERATORS = {
+    '=': operator.eq,
+    '==': operator.eq,
+    '>': operator.gt,
+    '<': operator.lt,
+    '>=': operator.ge,
+    '<=': operator.le,
+    '!=': operator.ne,
+    'in': lambda x, y: x in y,  # Soporte para "in"
+    'between': lambda x, y: y[0] <= x <= y[1],  # Soporte para rangos
+}
 
 class UsuariosLogica:
     def __init__(self):
@@ -21,18 +41,73 @@ class UsuariosLogica:
         user.password = Auth.get_password_hash(user.password)
         return self.facade.create_user(user, db)
 
-    def login(self, user, db: Session):
-        db_user = self.facade.get_user_by_email(user.correo, db)
-        if db_user is None or not Auth.verify_password(user.password, db_user.password):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales incorrectas")
-        
-        access_token = OptionsToken.create_access_token(data={"sub": db_user.correo, "tipo_usuario": db_user.tipo_usuario})
-        response = JSONResponse(content={"tipo_usuario": db_user.tipo_usuario})
+    def login(self, request: Request, user, db: Session):
+        db_user = self.facade.UsuariosCrud.get_user_by_email(user.correo, db)
 
-        response.headers["Authorization"] = f"Bearer {access_token}"
-        response.headers["sub"] = db_user.correo
-        response.headers["tipo_usuario"] = db_user.tipo_usuario
-        return response
+        client_host = request.client.host  # Esto devuelve la IP del cliente
+
+        regla_intentos = self.facade.ConfiguracionCrud.configuracion_get_by_nombre("intentos_login", db)
+        #! Obtener la función del operador   
+        operation_regla_intentos = OPERATORS.get(regla_intentos.operador)
+
+        regla_tiempo = self.facade.ConfiguracionCrud.configuracion_get_by_nombre("tiempo_bloqueo_login", db)
+        operadoer_regla_tiempo = OPERATORS.get(regla_tiempo.operador)
+
+        now = datetime.now()
+
+        if db_user is None or not Auth.verify_password(user.password, db_user.password):
+            #? Obtener la IP del cliente desde los encabezados
+            usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_find_one(db_user.cod_usuario, client_host, db)
+#             Si el servidor está detrás de un proxy o un balanceador de carga (como Nginx), la IP que obtendrás será la del proxy.
+            # Para obtener la IP real del cliente, revisa el encabezado X-Forwarded-For
+            # Intenta obtener la IP del cliente desde el encabezado 'X-Forwarded-For'
+            # forwarded_for = request.headers.get("X-Forwarded-For")
+            # client_ip = forwarded_for.split(",")[0] if forwarded_for else request.client.host
+
+            if not usuario_sesion:
+                self.facade.UsuariosSesionCrud.usuario_session_create(db_user.cod_usuario, client_host, db)
+            else:
+                
+                # Calcular si han pasado N minutos
+                #! evalua la condicion de la regla
+                if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))):
+                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db)
+                else:
+                    if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
+                        tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
+                        tiempo_restante = str(tiempo_restante).split('.')[0][2:]
+                        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
+                    else:
+                        self.facade.UsuariosSesionCrud.usuario_session_update(db_user.cod_usuario, client_host, db)
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales incorrectas")
+        else:
+            usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_find_one(db_user.cod_usuario, client_host, db)
+            if not usuario_sesion or usuario_sesion.intentos_login < int(regla_intentos.valor):
+                if usuario_sesion:
+                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db) 
+
+                access_token = OptionsToken.create_access_token(data={"sub": db_user.correo, "tipo_usuario": db_user.tipo_usuario})
+                response = JSONResponse(content={"tipo_usuario": db_user.tipo_usuario})
+
+                response.headers["Authorization"] = f"Bearer {access_token}"
+                response.headers["sub"] = db_user.correo
+                response.headers["tipo_usuario"] = db_user.tipo_usuario
+                return response
+            else:
+                
+                # Calcular si han pasado N minutos
+                #! evalua la condicion de la regla
+                if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))):
+                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db)
+                else:
+                    if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
+                        tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
+                        tiempo_restante = str(tiempo_restante).split('.')[0][2:]
+                        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
+                    else:
+                        self.facade.UsuariosSesionCrud.usuario_session_update(db_user.cod_usuario, client_host, db)
+            
+               
 
     def password_reset(self, request: Request, data, db: Session):
         """
@@ -75,5 +150,25 @@ class UsuariosLogica:
         datos.password = Auth.get_password_hash(datos.password)
         return self.facade.update_password(datos, db)
         
-
+    def clientes_lista(self, db: Session):
+        return self.facade.UsuariosCrud.clientes_lista(db)    
     
+    def usuario_update(self, datos, db: Session):
+        return self.facade.UsuariosCrud.usuario_update(datos, db)
+
+    def usuario_by_correo(self, request : Request, db: Session):
+        token = request.headers.get("Authorization")
+        token = token.split(" ")
+        payload = OptionsToken.get_info_token(token[1])
+        correo = payload.get("sub")
+        usuario_cuenta = self.facade.UsuariosCrud.get_user_by_email(correo, db)
+        if not usuario_cuenta:
+            return JSONResponse(
+                status_code=200,
+                content={"message": "Usuario no encontrado"}
+            )
+        return usuario_cuenta
+
+
+
+        

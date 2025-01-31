@@ -69,7 +69,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
             
             exp = payload.get("exp")
             # verifica q no haya expirado el link y solo lo renova si no es cambiar_password
-            if exp and datetime.utcfromtimestamp(exp) - datetime.utcnow() < timedelta(minutes=5) and request.url.path != "/cambiar_password":
+            if exp and datetime.utcfromtimestamp(exp) - datetime.utcnow() < timedelta(minutes=1) and request.url.path != "/cambiar_password":
                 # reinicia el tiempo del token
                 token = OptionsToken.create_access_token(payload)
 
