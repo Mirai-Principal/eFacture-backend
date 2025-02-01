@@ -9,8 +9,17 @@ from Persistencia.Models.Configuracion import Configuracion
 from Schemas.ConfiguracionSchema import ConfiguracionUpdate 
 
 class ConfiguracionCrud:
+    def configuracion_get_by_id(self, cod_regla : int, db : Session):
+        resultado = db.query(Configuracion).where(Configuracion.cod_regla == cod_regla).first()
+        if not resultado:
+            return JSONResponse(
+                status_code=200,
+                content={"message": "No hay datos registrados"}
+            )
+        return resultado
+
     def configuracion_lista(self, db : Session):
-        resultado = db.query(Configuracion).all()
+        resultado = db.query(Configuracion).order_by(Configuracion.nombre).all()
         if not resultado:
             return JSONResponse(
                 status_code=200,
@@ -40,7 +49,6 @@ class ConfiguracionCrud:
             )
         query.nombre = datos.nombre
         query.descripcion = datos.descripcion
-        query.campo = datos.campo
         query.operador = datos.operador
         query.valor = datos.valor
         return self.get_exception(query, "Configuración", db)

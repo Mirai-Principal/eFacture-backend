@@ -24,7 +24,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Allows all origins from the list - acceso desde el frontend
     allow_credentials=True, # para uso de tokens y cookies / información de credenciales en los encabezados
-    allow_methods=["GET", "POST", "DELETE"],  # Allows methods que el frontend puede solicitar
+    allow_methods=["GET", "POST", "DELETE", "PUT"],  # Allows methods que el frontend puede solicitar
     allow_headers=["*"],  # Allows all headers que vienen desde el frontend
     expose_headers=["Authorization", "sub", "tipo_usuario", "filename"],  # Permite que el frontend vea los encabezados
     max_age=3600,  # Cachea la respuesta preflight por 1 hora
