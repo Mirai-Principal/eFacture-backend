@@ -43,8 +43,16 @@ class UsuariosLogica:
 
     def login(self, request: Request, user, db: Session):
         db_user = self.facade.UsuariosCrud.get_user_by_email(user.correo, db)
+        if(db_user is None):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales incorrectas")
 
+        #? Obtener la IP del cliente desde los encabezados
         client_host = request.client.host  # Esto devuelve la IP del cliente
+        #Si el servidor está detrás de un proxy o un balanceador de carga (como Nginx), la IP que obtendrás será la del proxy.
+        # Para obtener la IP real del cliente, revisa el encabezado X-Forwarded-For
+        # Intenta obtener la IP del cliente desde el encabezado 'X-Forwarded-For'
+        # forwarded_for = request.headers.get("X-Forwarded-For")
+        # client_ip = forwarded_for.split(",")[0] if forwarded_for else request.client.host
 
         regla_intentos = self.facade.ConfiguracionCrud.configuracion_get_by_nombre("intentos_login", db)
         #! Obtener la función del operador   
@@ -55,59 +63,49 @@ class UsuariosLogica:
 
         now = datetime.now()
 
+        usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_find_one(db_user.cod_usuario, client_host, db)
+        if not usuario_sesion:
+                usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_create(db_user.cod_usuario, client_host, db)
+
         if db_user is None or not Auth.verify_password(user.password, db_user.password):
-            #? Obtener la IP del cliente desde los encabezados
-            usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_find_one(db_user.cod_usuario, client_host, db)
-#             Si el servidor está detrás de un proxy o un balanceador de carga (como Nginx), la IP que obtendrás será la del proxy.
-            # Para obtener la IP real del cliente, revisa el encabezado X-Forwarded-For
-            # Intenta obtener la IP del cliente desde el encabezado 'X-Forwarded-For'
-            # forwarded_for = request.headers.get("X-Forwarded-For")
-            # client_ip = forwarded_for.split(",")[0] if forwarded_for else request.client.host
-
-            if not usuario_sesion:
-                self.facade.UsuariosSesionCrud.usuario_session_create(db_user.cod_usuario, client_host, db)
+            # Calcular si han pasado N minutos
+            #! evalua la condicion de la regla
+            if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))):
+                # pone a cero los intentos
+                self.facade.UsuariosSesionCrud.usuario_session_reset(db_user.cod_usuario, client_host, db)
             else:
-                
-                # Calcular si han pasado N minutos
-                #! evalua la condicion de la regla
-                if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))):
-                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db)
-                else:
-                    if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
-                        tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
-                        tiempo_restante = str(tiempo_restante).split('.')[0][2:]
-                        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
-                    else:
-                        self.facade.UsuariosSesionCrud.usuario_session_update(db_user.cod_usuario, client_host, db)
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales incorrectas")
+                # verificar que no se haya superado el numero de intentos
+                if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
+                    tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
+                    tiempo_restante = str(tiempo_restante).split('.')[0][2:]
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
+            # suma un intento
+            usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_update(db_user.cod_usuario, client_host, db)
+
+            intentos_restantes = int(regla_intentos.valor) - int(usuario_sesion.intentos_login)
+            if(intentos_restantes == 0):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {regla_tiempo.valor} minutos")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Credenciales incorrectas\nTienes {intentos_restantes} intentos antes de ser bloqueado")
         else:
-            usuario_sesion = self.facade.UsuariosSesionCrud.usuario_session_find_one(db_user.cod_usuario, client_host, db)
-            if not usuario_sesion or usuario_sesion.intentos_login < int(regla_intentos.valor):
-                if usuario_sesion:
-                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db) 
-
+            #? si ya paso el tiempo de bloqueo se resetea los intentos y se logea, o si los intentos son 0
+            if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))) or usuario_sesion.intentos_login < int(regla_intentos.valor):  
+                # pone a cero los intentos
+                if usuario_sesion.intentos_login != 0:
+                    self.facade.UsuariosSesionCrud.usuario_session_reset(db_user.cod_usuario, client_host, db)
+                
                 access_token = OptionsToken.create_access_token(data={"sub": db_user.correo, "tipo_usuario": db_user.tipo_usuario})
-                response = JSONResponse(content={"tipo_usuario": db_user.tipo_usuario})
+                self.facade.UsuariosSesionCrud.usuario_session_update_token(db_user.cod_usuario, client_host, access_token, db)
 
+                response = JSONResponse(content={"tipo_usuario": db_user.tipo_usuario})
                 response.headers["Authorization"] = f"Bearer {access_token}"
                 response.headers["sub"] = db_user.correo
                 response.headers["tipo_usuario"] = db_user.tipo_usuario
                 return response
-            else:
-                
-                # Calcular si han pasado N minutos
-                #! evalua la condicion de la regla
-                if operadoer_regla_tiempo(now - usuario_sesion.updated_at, timedelta(minutes = int(regla_tiempo.valor))):
-                    self.facade.UsuariosSesionCrud.usuario_session_delete(db_user.cod_usuario, client_host, db)
-                else:
-                    if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
-                        tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
-                        tiempo_restante = str(tiempo_restante).split('.')[0][2:]
-                        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
-                    else:
-                        self.facade.UsuariosSesionCrud.usuario_session_update(db_user.cod_usuario, client_host, db)
-            
-               
+            # verificar que no se haya superado el numero de intentos
+            if operation_regla_intentos(usuario_sesion.intentos_login, int(regla_intentos.valor)):
+                tiempo_restante = timedelta(minutes=int(regla_tiempo.valor)) - (now - usuario_sesion.updated_at)
+                tiempo_restante = str(tiempo_restante).split('.')[0][2:]
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuario bloqueado por {tiempo_restante} minutos")
 
     def password_reset(self, request: Request, data, db: Session):
         """

@@ -15,7 +15,7 @@ class UsuariosSesionCrud:
         return db.query(UsuariosSesion).where(
             and_(
                 UsuariosSesion.cod_usuario == cod_usuario,
-                UsuariosSesion.ip_cliente == ip_cliente,
+                # UsuariosSesion.ip_cliente == ip_cliente,
             )
         ).first()
 
@@ -23,7 +23,7 @@ class UsuariosSesionCrud:
     def usuario_session_create(self, cod_usuario : int, ip_cliente : str, db: Session):
         query = UsuariosSesion(
             cod_usuario = cod_usuario,
-            intentos_login = 1,
+            intentos_login = 0,
             ip_cliente = ip_cliente
         )
         return self.get_exception(query, "Usuario sesión", db)
@@ -35,15 +35,24 @@ class UsuariosSesionCrud:
         if not usuario:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         usuario.intentos_login += 1
+        usuario.ip_cliente = ip_cliente
         return self.get_exception(usuario, "Usuario sesión", db)
 
-    def usuario_session_delete(self, cod_usuario, ip_cliente, db: Session):
+    def usuario_session_reset(self, cod_usuario, ip_cliente, db: Session):
         usuario = self.usuario_session_find_one(cod_usuario, ip_cliente, db)
         if not usuario:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        db.delete(usuario)
-        db.commit()
-        
+        usuario.intentos_login = 0
+        return self.get_exception(usuario, "Usuario sesión", db)
+
+    def usuario_session_update_token(self, cod_usuario, ip_cliente, token, db: Session):
+        usuario = self.usuario_session_find_one(cod_usuario, ip_cliente, db)
+        if not usuario:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        usuario.token_sesion = token
+        usuario.ip_cliente = ip_cliente
+        return self.get_exception(usuario, "Usuario sesión | token", db)
+
 
     def get_exception(self, consulta, tabla, db : Session):
         try:
@@ -54,7 +63,7 @@ class UsuariosSesionCrud:
             return consulta
         except IntegrityError as e:
             db.rollback()
-            raise HTTPException(status_code=400, detail=f"Ya existe una {tabla} con los mismo datos") from e
+            raise HTTPException(status_code=400, detail=f"Ya existe una {tabla} con los mismo datos {str(e)}") from e
         except DataError as e:
             db.rollback()
             raise HTTPException(status_code=400, detail="Error de datos: tipos o formato incorrecto") from e
