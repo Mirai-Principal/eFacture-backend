@@ -8,24 +8,25 @@ from jose import JWTError, jwt, ExpiredSignatureError
 
 import pytz
 
-from Persistencia.Conexion import Config
+from Configuracion import Config
+
 # Definir la zona horaria de Ecuador
 ecuador_tz = pytz.timezone('America/Guayaquil')
 
 class OptionsToken:
     @staticmethod
-    def create_access_token(data: dict, tiempo_expiracion_minutos: int = Config.ACCESS_TOKEN_EXPIRE_MINUTES):
+    def create_access_token(data: dict, tiempo_expiracion_minutos: int ):
         to_encode = data.copy()
         expire = datetime.now(ecuador_tz) + timedelta(minutes=tiempo_expiracion_minutos)
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, Config.SECRET_KEY, algorithm=Config.ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, Config.PRIVATE_KEY, algorithm="RS256")
         return encoded_jwt
     
     @staticmethod
     def get_info_token(token):
         # Decodificar el token
         try:
-            payload = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.ALGORITHM])
+            payload = jwt.decode(token, Config.PUBLIC_KEY, algorithms=["RS256"])
             user_id = payload.get("sub")
             if user_id is None:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
@@ -62,7 +63,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
 
         try:
             # Decodificar el token
-            payload = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.ALGORITHM])
+            payload = jwt.decode(token, Config.PUBLIC_KEY, algorithms=["RS256"])
             user_id = payload.get("sub")
             if user_id is None:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
@@ -71,7 +72,7 @@ class JWTMiddleware(BaseHTTPMiddleware):
             # verifica q no haya expirado el link y solo lo renova si no es cambiar_password
             if exp and datetime.utcfromtimestamp(exp) - datetime.utcnow() < timedelta(minutes=1) and request.url.path != "/cambiar_password":
                 # reinicia el tiempo del token
-                token = OptionsToken.create_access_token(payload)
+                token = OptionsToken.create_access_token(payload, 30)
 
             # Continuar con la solicitud y devolver el nuevo token en la respuesta
             response = await call_next(request)

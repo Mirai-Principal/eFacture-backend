@@ -6,14 +6,10 @@ from sqlalchemy.orm import Session
 
 from dateutil.relativedelta import relativedelta
 
-from Logica import Auth, Email
-from Persistencia.Conexion import Config
-
 from Persistencia.PersistenciaFacade import AccesoDatosFacade
 from Middlewares.JWTMiddleware import OptionsToken
 
 from Schemas.MembresiaSchema import Membresia, PagoMembresia
-
 
 class MembresiasLogica:
     def __init__(self):
