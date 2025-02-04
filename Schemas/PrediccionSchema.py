@@ -19,3 +19,8 @@ class DatosHistorico(BaseModel):
 class DatosCategoricos(BaseModel):
     categoria : str
     monto : float
+
+class CategoricoMensual(BaseModel):
+    anio : int
+    monto : float
+    

@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from Logica.PrediccionLogica import PrediccionLogica
-from Schemas.PrediccionSchema import DatosPrediccion, DatosHistorico, DatosCategoricos
+from Schemas.PrediccionSchema import DatosPrediccion, DatosHistorico, DatosCategoricos, CategoricoMensual
 
 from Persistencia.Conexion import DataBase
 
@@ -34,3 +34,8 @@ def consultar_prediccion_categorico(usuario : str, db : Session = Depends(DataBa
 @router.get('/consultar_historico_categorico/{usuario}', response_model = List[DatosCategoricos])
 def consultar_historico_categorico(usuario : str, db : Session = Depends(DataBase.get_db)):
     return PrediccionLogica.consultar_historico_categorico(usuario, db)
+
+
+@router.get('/consultar_categorico_mensual/{categoria}/{mes}', response_model = List[CategoricoMensual])
+def consultar_categorico_mensual(categoria: str, mes : int, db : Session = Depends(DataBase.get_db)):
+    return PrediccionLogica.consultar_categorico_mensual(categoria, mes, db)

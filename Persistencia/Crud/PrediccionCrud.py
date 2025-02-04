@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
-from sqlalchemy import cast, Date, text, select, and_, func
+from sqlalchemy import cast, Date, text, select, and_, func, union_all, extract
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -165,4 +165,38 @@ class PrediccionCrud:
             )
         return resultado
     
-    
+    def consultar_categorico_mensual(self, categoria, mes, db : Session):
+        # Subconsulta para dataset_entrenado
+        stmt1 = select(
+            DataSetEntrenado.anio,
+            func.sum(DataSetEntrenado.monto).label("monto")
+        ).where(
+            (DataSetEntrenado.categoria == categoria) & 
+            (DataSetEntrenado.mes == mes)
+        ).group_by(
+            DataSetEntrenado.anio, 
+        )
+        # Subconsulta para dataset_entrenamiento
+        stmt2 = select(
+            extract("year", DataSetEntrenamiento.fecha).label("anio"),
+            func.sum(DataSetEntrenamiento.monto).label("monto")
+        ).where(
+            (DataSetEntrenamiento.categoria == categoria) & 
+            (extract("month", DataSetEntrenamiento.fecha) == mes)
+        ).group_by(
+            extract("year", DataSetEntrenamiento.fecha),
+        )
+        # Unión de las dos consultas
+        union_stmt = union_all(stmt1, stmt2).subquery()
+
+        # Aplicar ORDER BY sobre la unión
+        query = select(
+            union_stmt.c.anio,
+            union_stmt.c.monto
+        ).order_by(union_stmt.c.anio,)
+
+        # Ejecutar la consulta
+        try:
+            return db.execute(query).mappings().all()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Ocurrion un error: {str(e)}") from e

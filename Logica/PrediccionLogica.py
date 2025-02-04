@@ -45,21 +45,31 @@ class PrediccionLogica:
         data['Usuario_encoded'] = le_usuario.fit_transform(data['usuario'])
         data['Categoría_encoded'] = le_categoria.fit_transform(data['categoria'])
 
+            
+        # Ordenar por usuario, categoría y fecha
+        data = data.sort_values(by=['usuario', 'categoria', 'fecha'])
+
+        # Crear la columna "monto_mismo_mes_anterior" para capturar el gasto del mismo mes del año anterior
+        data['monto_mismo_mes_anterior'] = data.groupby(['usuario', 'categoria', 'mes'])['monto'].shift(1)
+
+        # Rellenar valores NaN con 0 (para los primeros registros sin historial)
+        data['monto_mismo_mes_anterior'] = data['monto_mismo_mes_anterior'].fillna(0)
+
         # Variables de entrada (features) y salida (target)
-        X = data[['Usuario_encoded', 'Categoría_encoded', 'anio', 'mes']]
+        X = data[['Usuario_encoded', 'Categoría_encoded', 'anio', 'mes', 'monto_mismo_mes_anterior']]
         y = data['monto']
 
         # Dividir datos en entrenamiento y prueba
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
 
-        # Entrenar el modelo
-        # Probar con un modelo de RandomForest con más árboles y profundidad ajustada
-        model = RandomForestRegressor(n_estimators=200, max_depth=5, random_state=42)
+        # Entrenar el modelo con RandomForest
+        model = RandomForestRegressor(n_estimators=500, max_depth=20, random_state=42, max_leaf_nodes=25 )
         model.fit(X_train, y_train)
 
-        # Evaluar el modelo (opcional)
+        # Evaluar el modelo
         score = model.score(X_test, y_test)
         print(f"Precisión del modelo: {score:.2f}")
+
 
         # --- Generar predicciones para los próximos 12 o N meses ---
 
@@ -70,21 +80,38 @@ class PrediccionLogica:
         # Determinar la última fecha del dataset
         ultima_fecha = data['fecha'].max()
 
-        # Generar el dataset futuro desde la última fecha
-        futuro = self.generar_futuro_desde_ultima_fecha(
-            usuarios=usuarios_unicos,
-            categorias=categorias_unicas,
-            ultima_fecha=ultima_fecha,
-            meses_futuros = meses_futuros
-        )
+        # Generar el dataset futuro con los últimos valores históricos
+        futuro = []
+  
+        # Extraer el último año y mes
+        año_inicial = ultima_fecha.year
+        mes_inicial = ultima_fecha.month + 1
+        
+        for usuario in usuarios_unicos:
+            for categoria in categorias_unicas:
+                año = año_inicial
+                anios_futuros = 0
+                for i in range(1, meses_futuros + 1):
+                    # Calcular el mes y el año futuros
+                    mes = ((mes_inicial + i - 1) % 12) or 12  # Mantener meses entre 1 y 12
+                    monto_mes_anterior = data[
+                        (data['Usuario_encoded'] == usuario) & 
+                        (data['Categoría_encoded'] == categoria) &
+                        (data['anio'] == año - 1) &  # Buscar el mismo mes del año anterior
+                        (data['mes'] == mes)
+                    ]['monto'].sum()
+                    futuro.append([usuario, categoria, año, mes, monto_mes_anterior])
+                    if mes == 12:
+                        anios_futuros += 1
+                        año = año_inicial + anios_futuros   # Ajustar el año si el mes excede 12
 
-        # Convertir el futuro en un DataFrame
-        df_futuro = pd.DataFrame(futuro, columns=['Usuario_encoded', 'Categoría_encoded', 'anio', 'mes'])
+        # Convertir el futuro en DataFrame
+        df_futuro = pd.DataFrame(futuro, columns=['Usuario_encoded', 'Categoría_encoded', 'anio', 'mes', 'monto_mismo_mes_anterior'])
 
-        # Predecir montos para los datos futuros
-        df_futuro['monto'] = model.predict(df_futuro)
+        # Predecir montos para los mismos meses del próximo año
+        df_futuro['monto'] = model.predict(df_futuro[['Usuario_encoded', 'Categoría_encoded', 'anio', 'mes', 'monto_mismo_mes_anterior']])
 
-        # Decodificar usuario y categoria para que sean legibles
+        # Decodificar usuario y categoría
         df_futuro['usuario'] = le_usuario.inverse_transform(df_futuro['Usuario_encoded'])
         df_futuro['categoria'] = le_categoria.inverse_transform(df_futuro['Categoría_encoded'])
 
@@ -131,4 +158,7 @@ class PrediccionLogica:
         return self.facade.consultar_prediccion_categorico(usuario, db)
     def consultar_historico_categorico(self, usuario, db : Session):
         return self.facade.consultar_historico_categorico(usuario, db)
+
+    def consultar_categorico_mensual(self, categoria, mes, db : Session):
+        return self.facade.PrediccionCrud.consultar_categorico_mensual(categoria, mes, db)
     
