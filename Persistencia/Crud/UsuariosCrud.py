@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date, func, literal, text
 from sqlalchemy.exc import DataError, IntegrityError
 from fastapi.responses import JSONResponse
 
@@ -32,12 +32,12 @@ class UsuariosCrud:
                 Usuarios.apellidos,
                 Usuarios.correo,
                 cast(Usuarios.created_at, Date).label("created_at"),
-                UsuarioMembresia.estado_membresia,
-                cast(UsuarioMembresia.fecha_vencimiento, Date).label("fecha_vencimiento"),
-                UsuarioMembresia.cant_comprobantes_permitidos,
+                func.coalesce(UsuarioMembresia.estado_membresia, literal("N/A")).label("estado_membresia"),
+                cast(func.coalesce(UsuarioMembresia.fecha_vencimiento, text("CURRENT_DATE")), Date).label("fecha_vencimiento"),
+                func.coalesce(UsuarioMembresia.cant_comprobantes_permitidos, literal(0)).label("cant_comprobantes_permitidos"),
             )\
             .where(Usuarios.tipo_usuario != 'admin')\
-            .join(UsuarioMembresia, UsuarioMembresia.cod_usuario == Usuarios.cod_usuario)\
+            .outerjoin(UsuarioMembresia, UsuarioMembresia.cod_usuario == Usuarios.cod_usuario)\
             .all()
 
     def get_user_by_email(self, correo: str, db: Session):

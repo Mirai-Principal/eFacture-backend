@@ -24,3 +24,6 @@ class UsuarioMembresia(BaseModel):
 class MiSuscripcion(BaseModel):
     cod_usuario : int
     cod_membresia : int
+
+class EstadoSuscripcion(BaseModel):
+    estado_membresia : str

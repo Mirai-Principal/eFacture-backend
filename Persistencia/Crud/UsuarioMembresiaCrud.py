@@ -1,28 +1,22 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, IntegrityError
-from sqlalchemy import and_
+from sqlalchemy import and_, cast, Date, select
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy import select
-from sqlalchemy import cast, Date
-
 
 import pytz
 # Definir la zona horaria de Ecuador
 ecuador_tz = pytz.timezone('America/Guayaquil')
-
 
 from Persistencia.Models.Membresias import Membresias
 from Persistencia.Models.UsuarioMembresia import UsuarioMembresia
 
 from Schemas.UsuarioMembresiaSchema import MiSuscripcion
 
-
-
 class UsuarioMembresiaCrud:
-    def visualizar_mi_suscripcion(self, db : Session):
+    def visualizar_mi_suscripcion(self,cod_usuario : int, db : Session):
         try:
             stmt = (
                 select(
@@ -42,7 +36,10 @@ class UsuarioMembresiaCrud:
                     UsuarioMembresia,
                     Membresias.cod_membresia == UsuarioMembresia.cod_membresia,
                 )
-                .where(UsuarioMembresia.estado_membresia == "vigente")
+                .where(and_(
+                    UsuarioMembresia.estado_membresia == "vigente",
+                    UsuarioMembresia.cod_usuario == cod_usuario
+                ))
             )
 
             # Ejecutar la consulta y obtener resultados como diccionarios
@@ -93,4 +90,16 @@ class UsuarioMembresiaCrud:
 
         return suscripcion
         
-            
+    def get_estado_suscripcion(self, cod_usuario, db : Session):
+        suscripcion = db.query(UsuarioMembresia).where(
+            and_(
+                    UsuarioMembresia.cod_usuario == cod_usuario,
+                    UsuarioMembresia.estado_membresia == "vigente",
+                )
+        ).first()
+        if not suscripcion:
+                return JSONResponse(
+                    status_code=200,
+                    content={"message": "No tienes una suscripción vigente"}
+                )
+        return suscripcion
