@@ -165,14 +165,15 @@ class PrediccionCrud:
             )
         return resultado
     
-    def consultar_categorico_mensual(self, categoria, mes, db : Session):
+    def consultar_categorico_mensual(self, categoria, mes, usuario, db : Session):
         # Subconsulta para dataset_entrenado
         stmt1 = select(
             DataSetEntrenado.anio,
             func.sum(DataSetEntrenado.monto).label("monto")
         ).where(
             (DataSetEntrenado.categoria == categoria) & 
-            (DataSetEntrenado.mes == mes)
+            (DataSetEntrenado.mes == mes) &
+            (DataSetEntrenado.usuario == usuario)
         ).group_by(
             DataSetEntrenado.anio, 
         )
@@ -182,7 +183,8 @@ class PrediccionCrud:
             func.sum(DataSetEntrenamiento.monto).label("monto")
         ).where(
             (DataSetEntrenamiento.categoria == categoria) & 
-            (extract("month", DataSetEntrenamiento.fecha) == mes)
+            (extract("month", DataSetEntrenamiento.fecha) == mes) &
+            (DataSetEntrenamiento.usuario == usuario)
         ).group_by(
             extract("year", DataSetEntrenamiento.fecha),
         )

@@ -159,6 +159,6 @@ class PrediccionLogica:
     def consultar_historico_categorico(self, usuario, db : Session):
         return self.facade.consultar_historico_categorico(usuario, db)
 
-    def consultar_categorico_mensual(self, categoria, mes, db : Session):
-        return self.facade.PrediccionCrud.consultar_categorico_mensual(categoria, mes, db)
+    def consultar_categorico_mensual(self, categoria, mes, usuario, db : Session):
+        return self.facade.PrediccionCrud.consultar_categorico_mensual(categoria, mes, usuario, db)
     

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -35,7 +35,7 @@ def consultar_prediccion_categorico(usuario : str, db : Session = Depends(DataBa
 def consultar_historico_categorico(usuario : str, db : Session = Depends(DataBase.get_db)):
     return PrediccionLogica.consultar_historico_categorico(usuario, db)
 
-
-@router.get('/consultar_categorico_mensual/{categoria}/{mes}', response_model = List[CategoricoMensual])
-def consultar_categorico_mensual(categoria: str, mes : int, db : Session = Depends(DataBase.get_db)):
-    return PrediccionLogica.consultar_categorico_mensual(categoria, mes, db)
+# cara obtener datos en range de prediccion del frontend
+@router.get('/consultar_categorico_mensual/{categoria}/{mes}/{usuario}', response_model = List[CategoricoMensual])
+def consultar_categorico_mensual(categoria: str, mes : int, usuario : str, db : Session = Depends(DataBase.get_db)):
+    return PrediccionLogica.consultar_categorico_mensual(categoria, mes, usuario, db)
